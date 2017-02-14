@@ -1,0 +1,1 @@
+mvn install:install-file -DgroupId=com.itextpdf -DartifactId=itextpdf -Dversion=5.5.10 -Dpackaging=jar -Dfile=proprietary/itextpdf-5.5.10-SNAPSHOT.jar -Djavadoc=proprietary/itextpdf-5.5.10-SNAPSHOT-javadoc.jar -Dsources=proprietary/itextpdf-5.5.10-SNAPSHOT-sources.jar

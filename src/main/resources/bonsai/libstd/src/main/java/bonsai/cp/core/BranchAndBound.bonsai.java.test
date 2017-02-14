@@ -1,0 +1,73 @@
+// Copyright 2016 Pierre Talbot (IRCAM)
+
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+
+//     http://www.apache.org/licenses/LICENSE-2.0
+
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package bonsai.cp.core;
+
+import java.util.*;
+import inria.meije.rc.sugarcubes.*;
+import inria.meije.rc.sugarcubes.implementation.*;
+import org.chocosolver.solver.*;
+import org.chocosolver.solver.variables.*;
+import org.chocosolver.solver.search.strategy.selectors.variables.*;
+import org.chocosolver.solver.search.strategy.selectors.values.*;
+import bonsai.runtime.core.*;
+import bonsai.runtime.choco.*;
+import bonsai.runtime.sugarcubes.*;
+
+public class BranchAndBound implements Executable
+{
+  private channel world_line VarStore domains = bot;
+  private channel world_line ConstraintStore constraints = bot;
+  private channel single_time FlatLattice<Consistent> consistent = bot;
+  private single_space ConstraintStore objective = bot;
+
+  private IntVar objVar;
+
+  public BranchAndBound(IntVar x) {
+    this.var = var;
+    this.val = val;
+  }
+
+  public proc execute() {
+    par minimize() || yield_objective() end
+  }
+
+  proc yield_objective() {
+    loop {
+      constraint <- objective;
+      pause;
+    }
+    // when (constraints |= objective) |= false {
+    //    constraints <- objective;
+    // }
+  }
+
+  proc minimize() {
+    loop {
+      when consistent |= Consistent.True {
+        objective <- objVar.lt(objVar.getValue());
+      }
+      pause;
+    }
+  }
+
+  proc maximize() {
+    loop {
+      when consistent |= Consistent.True {
+        objective <- objVar.gt(objVar.getValue());
+      }
+      pause;
+    }
+  }
+}
