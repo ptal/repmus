@@ -57,6 +57,7 @@ public class AIS3 implements Executable
     || run branching.split();
     || run propagation;
     || displaySolution();
+    || loop { stop; }
     end
   }
 

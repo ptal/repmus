@@ -162,7 +162,7 @@ public static class VoicePanel extends MusicalPanel {
 
 	public void stepCSP () {
 		if (machine != null) {
-			if (machine.step() == false) { // We explored all solution.
+			if (machine.execute() == MachineStatus.Terminated) { // We explored all solution.
 				machine = null;
 			}
 		}
