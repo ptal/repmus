@@ -35,7 +35,7 @@ import javafx.scene.shape.Shape;
 import javafx.scene.text.Font;
 
 public class FXCanvas implements I_SimpleView{
-	
+
 
 	public Canvas delegate;
 	public GCRender render;
@@ -43,39 +43,39 @@ public class FXCanvas implements I_SimpleView{
 	Font font;
 	I_MovableObj mouvable = null;
 	ScrollPane scroller = null;
-	
-	
+
+
 	public FXCanvas () {
 		delegate = new Canvas() ;
 		render = new GCRender(this);
-		
+
 		delegate.setOnMousePressed(e->{mousePressed ( e);});
 		delegate.setOnMouseReleased(e->{mouseReleased ( e);});
 		delegate.setOnMouseDragged(e->{mouseDragged ( e);});
-		
+
 		delegate.setOnMouseEntered(e->{mouseEntered(e);});
 		delegate.setOnMouseExited(e->{mouseExited(e);});
 		delegate.setOnMouseMoved(e->{mouseMoved(e);});
-		
+
 		delegate.setOnKeyPressed(e->{keyPressed(e);});
 		delegate.setOnKeyReleased(e->{keyReleased(e);});
 		delegate.setOnKeyTyped(e->{keyTyped(e);});
-		
+
 		delegate.setOnContextMenuRequested(e->{contextMenuRequested (e);});
-		
+
 		delegate.setOnDragDetected(e->{dragDetected(e);});
 		delegate.setOnDragDone(e->{dragDone(e);});
 		delegate.setOnDragDropped((DragEvent e)->{dragDropped(e);});
 		delegate.setOnDragEntered(e->{dragEntered(e);});
 		delegate.setOnDragExited(e->{dragExited(e);});
 		delegate.setOnDragOver((DragEvent e)->{dragOver(e);});
-		
+
 		delegate.setOnMouseDragEntered(e->{mouseDragEntered(e);});
 		delegate.setOnMouseDragExited(e->{mouseDragExited(e);});
 		delegate.setOnMouseDragOver(e -> {mouseDragOver(e);});
 		delegate.setOnMouseDragReleased(e->{mouseDragReleased(e);});
 	}
-	
+
 	public FXCanvas (boolean h, boolean v) {
 		this();
 		if (h || v){
@@ -89,23 +89,23 @@ public class FXCanvas implements I_SimpleView{
 			scroller.setContent(this.delegate);
 		}
 	}
-	
+
 	@Override
 	public ScrollPane omGetScroller (){
 		return scroller;
 	}
-	
+
 	@Override
 	public void omSetParent(I_ContainerView pere) {
 		parent = pere;
 	}
-	
+
 	@Override
 	public Node omGetDelegate() {
 		return delegate;
 	}
 
-	
+
 	@Override
 	public Color omGetBackground() {
 		// TODO Auto-generated method stub
@@ -115,7 +115,7 @@ public class FXCanvas implements I_SimpleView{
 	@Override
 	public void omSetBackground(Color color) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -136,7 +136,7 @@ public class FXCanvas implements I_SimpleView{
 	@Override
 	public void omSetCursor(Cursor cursor) {
 		delegate.setCursor(cursor);
-		
+
 	}
 
 	@Override
@@ -149,7 +149,7 @@ public class FXCanvas implements I_SimpleView{
 		delegate.setWidth(w);
 		delegate.setHeight(h);
 	}
-	
+
 	public void omSetViewSize(Point2D size) {
 		delegate.setWidth(size.getX());
 		delegate.setHeight(size.getY());
@@ -159,17 +159,17 @@ public class FXCanvas implements I_SimpleView{
 	public Point2D omViewPosition() {
 		return new Point2D (delegate.getLayoutX(), delegate.getLayoutY());
 	}
-	
-	
+
+
 	@Override
 	public void omSetViewPosition(double x, double y) {
 		delegate.relocate (x,y);
-		
+
 	}
-	
+
 	public void omSetViewPosition(Point2D pos) {
 		delegate.relocate (pos.getX(),pos.getY());
-		
+
 	}
 
 	@Override
@@ -201,7 +201,7 @@ public class FXCanvas implements I_SimpleView{
 	@Override
 	public void omUpdateView(boolean changedObject_p) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -213,11 +213,11 @@ public class FXCanvas implements I_SimpleView{
 	public GraphicsContext omGetGraphicContext() {
 		return delegate.getGraphicsContext2D();
 	}
-	
+
 	public GCRender getGCRender () {
 		return render;
 	}
-	
+
 /////////////////////////////////////////////////////////////////////
 //Events
 /////////////////////////////////////////////////////////////////////
@@ -231,7 +231,7 @@ public class FXCanvas implements I_SimpleView{
 	}
 
 	public void mousePressed (MouseEvent e) {
-		if (e.getClickCount()==1) 
+		if (e.getClickCount()==1)
 			omMousePressed(e.getX(), e.getY());
 		if(e.getClickCount() == 2)
 			omDoubleClick(e.getX(), e.getY());
@@ -313,6 +313,15 @@ else if (keyCode == KeyCode.COMMAND) FX.setCommandKey (true);
 else if (keyCode == KeyCode.SHIFT) FX.setShiftKey(true);
 else if (keyCode == KeyCode.CONTROL) FX.setControlKey(true);
 else if (keyCode == KeyCode.ALT) FX.setAltKey (true);
+else if (keyCode == KeyCode.DIGIT1) str = "1";
+else if (keyCode == KeyCode.DIGIT2) str = "2";
+else if (keyCode == KeyCode.DIGIT3) str = "3";
+else if (keyCode == KeyCode.DIGIT4) str = "4";
+else if (keyCode == KeyCode.DIGIT5) str = "5";
+else if (keyCode == KeyCode.DIGIT6) str = "6";
+else if (keyCode == KeyCode.DIGIT7) str = "7";
+else if (keyCode == KeyCode.DIGIT8) str = "8";
+else if (keyCode == KeyCode.DIGIT9) str = "9";
 else str = "";
 KeyHandler (str);
 
@@ -368,8 +377,8 @@ return null;
 
 	public void dragDetected(MouseEvent e) {
 		if (draggable())
-			omStartDragDrop(e.getX(), e.getY()); 
-		e.consume(); 
+			omStartDragDrop(e.getX(), e.getY());
+		e.consume();
 	};
 
 	public void dragDone (DragEvent e) {
@@ -383,7 +392,7 @@ return null;
 		{
 			for (I_SimpleView item : FX.draggingListObj ) {
 				item.omSetViewPosition(e.getX(), e.getY());
-				e.setDropCompleted(true);		   
+				e.setDropCompleted(true);
 			}
 			FX.draggingListObj.clear();
 			e.consume();

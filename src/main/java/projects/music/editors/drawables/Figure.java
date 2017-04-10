@@ -22,7 +22,7 @@ public class Figure implements I_Drawable{
 
 	public Fraction realDur; //subdivision ou multiplication
 	public long longTimes;
-	
+
 	public boolean rest_p;
 	public String head;
 	public int points;
@@ -30,16 +30,16 @@ public class Figure implements I_Drawable{
 	public boolean stem_p = false;
 	public long denom = 1; //a mettre sur le group
 	public boolean inGroup = false;
-	
+
 	double strSize = 7.176000118255615;
 	double spaceRelPosX = 0;
-	
+
 	public SimpleDrawable ref = null;
 
 	public Figure (long thedur, boolean big, boolean rest) {
 		big_p = big;
 		rest_p = rest;
-		realDur = new Fraction (thedur); 
+		realDur = new Fraction (thedur);
 		setHeadAndPoints(thedur, 1);
 	}
 
@@ -47,26 +47,26 @@ public class Figure implements I_Drawable{
 		big_p = big;
 		rest_p = rest;
 		denom = thedenom;
-		realDur = new Fraction (thedur, thedenom); 
+		realDur = new Fraction (thedur, thedenom);
 		long symb_denom = Strie_MO.findBeatSymbol(denom);
 		setHeadAndPoints(thedur, symb_denom);
 	}
-	
+
 	public double getStrSize (int size) {
 		return  strSize * (size/24) ;
 	}
-	
+
 	public boolean hasDenom () {
 		Fraction frac = new Fraction (1, denom);
-		System.out.println ("test " + denom + " " +  frac.isBinaire() );
+		// System.out.println ("test " + denom + " " +  frac.isBinaire() );
 		return ! (denom == 1 || frac.isBinaire()) ;
 	}
-	
+
 
 	public long getDurMS (double tempo) {
 		return Strie_MO.n2ms(realDur, tempo);
 	}
-		
+
 	public String toString ( ){
 		return "head " + head +" big_p " + big_p + " denom : " + denom + " beamsnum : " + beamsnum + " points : " + points + "\n";
 	}
@@ -124,7 +124,7 @@ public class Figure implements I_Drawable{
 			else if (val.equals(Fraction.f1_128)) {strSize=7.176000118255615; stem_p = true; beamsnum = 5; return MusChars.head_1_4;}
 			else {strSize=7.176000118255615; stem_p = true; beamsnum = 6; return MusChars.head_1_4;}
 		}
-	
+
 	@Override
 	public double computeCX(SpacedPacket pack, int size) {
 		if (ref instanceof RNoteDrawable) {
@@ -161,13 +161,13 @@ public class Figure implements I_Drawable{
 
 	@Override
 	public void setCX(double cx) {
-		spaceRelPosX = cx;	
+		spaceRelPosX = cx;
 	}
 
 	@Override
 	public void translateCX(double max, SpacedPacket pack) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -179,7 +179,7 @@ public class Figure implements I_Drawable{
 	@Override
 	public void consTimeSpaceCurve(int size, double x, int zoom) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -192,7 +192,7 @@ public class Figure implements I_Drawable{
 	public void drawContainersObjects(I_Render g, FXCanvas panel,
 			Rectangle rect, List<I_Drawable> selection, double deltax) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -228,7 +228,7 @@ public class Figure implements I_Drawable{
 	@Override
 	public void setFather(ContainerDrawable thefather) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -240,13 +240,13 @@ public class Figure implements I_Drawable{
 	@Override
 	public void collectTemporalObjectsS(List<SpacedPacket> timelist) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void collectTemporalObjectsL(List<SpacedPacket> timelist) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 }

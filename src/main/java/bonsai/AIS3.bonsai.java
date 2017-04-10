@@ -23,13 +23,15 @@ import projects.music.editors.MusicalEditor;
 
 public class AIS3 implements Executable
 {
-  private world_line VarStore domains = bot;
-  private world_line ConstraintStore constraints = bot;
-  private single_time FlatLattice<Consistent> consistent = bot;
+  public world_line VarStore domains = bot;
+  public world_line ConstraintStore constraints = bot;
+  public single_time FlatLattice<Consistent> consistent = bot;
+  public world_line LMax asn = bot;
 
   private int n;
   private VoicePanel panel;
-  private IntVar[] notes;
+  public IntVar[] notes;
+  public IntVar[] intervals;
 
   public AIS3(int n, VoicePanel panel) {
     this.n = n;
@@ -38,52 +40,80 @@ public class AIS3 implements Executable
   }
 
   public proc execute() {
-    model();
-    trap FoundSolution {
-      engine();
-    }
+    ~modelChoco(domains, constraints);
+    ~printModel("After initialization", consistent, domains);
+    engine();
     ~printVariables("Solution", consistent, domains);
   }
 
-  proc model() {
-    ~modelChoco(domains, constraints);
-    ~printModel("After initialization", consistent, domains);
-  }
-
   proc engine() {
-    module Branching branching = Branching.firstFailMiddle(domains.model());
+    module Branching branching = Branching.inputOrderMin(domains.model());
     module Propagation propagation = new Propagation();
     par
-    || run branching.split();
     || run propagation;
-    || displaySolution();
-    || loop { stop; }
+    || run branching.split();
+    || stopAsn();
+    // || displaySolution();
+    // || loop { stop; }
     end
   }
 
   proc displaySolution() {
     loop {
-      ~updatePanel();
-      pause;
+      ~System.out.println("displaySolution");
+      par
+      || when domains |= constraints {
+         ~System.out.println("displaySolution.true");
+          stop;
+         }
+      // || when consistent |= Consistent.False {
+      //     ~System.out.println("displaySolution.false");
+      //     stop;
+      // }
+      // || when consistent |= Consistent.Unknown {
+      //     ~System.out.println("displaySolution.unknown");
+      //     stop;
+      // }
+      || pause;
+      end
     }
   }
 
-  private void modelChoco(VarStore domains,
-    ConstraintStore constraints)
+  proc stopAsn() {
+    loop {
+      par
+      || asn <- domains.countAsnOf(this.notes);
+      || when asn > pre asn {
+           stop;
+         }
+      || pause;
+      end
+    }
+  }
+
+  private void printAsn(LMax asn) {
+    System.out.println("Asn = " + asn);
+  }
+
+  public void modelChoco(VarStore domains, ConstraintStore constraints)
   {
     Model model = domains.model();
-    notes = new IntVar[n];
-    IntVar[] intervales = new IntVar[n];
-    for(int i = 0; i < n; i++) {
-      notes[i] = (IntVar) domains.alloc(new IntDomain(0, n-1));
-      intervales[i] = (IntVar) domains.alloc(new IntDomain(0, n-1));
-    }
-    constraints.join(new AllDifferent(notes, "BC"));
-    constraints.join(new AllDifferent(intervales, "BC"));
-    constraints.join(model.arithm(notes[0], "=", 0));
+    notes = model.intVarArray("s", n, 0, n - 1, false);
+    intervals = model.intVarArray("V", n - 1, 1, n - 1, false);
+    // for(int i = 0; i < n; i++) {
+    //   notes[i] = (IntVar) domains.alloc(new IntDomain(0, n-1));
+    // }
+    // for(int i = 0; i < n - 1; i++) {
+    //   intervals[i] = (IntVar) domains.alloc(new IntDomain(1, n-1));
+    // }
+
+    constraints.join(new AllDifferent(notes, "DEFAULT"));
+    constraints.join(new AllDifferent(intervals, "DEFAULT"));
     for (int i=0; i < n-1; i++){
-      constraints.join(model.distance(notes[i + 1], notes[i], "=", intervales[i]));
+      constraints.join(model.distance(notes[i+1], notes[i], "=", intervals[i]));
     }
+    constraints.join(model.arithm(notes[0], "<", notes[n-1]));
+    constraints.join(model.arithm(intervals[0], "<", intervals[1]));
   }
 
   private static void printHeader(String message,
@@ -110,30 +140,20 @@ public class AIS3 implements Executable
     System.out.println("]");
   }
 
-  private void setupPanel() {
+  public void setupPanel() {
     MusicalEditor ed = (MusicalEditor) panel.getEditor();
     Voice object;
     if (ed != null) {
       object = (Voice) ed.getObject();
-      List<List<Integer>> midics = new ArrayList<List<Integer>>();
       List<RChord> rep1 = new ArrayList<RChord> ();
       RChord chord = new RChord (ST.createList(1, 6000),
               ST.createList(1, 100), ST.createList(1, (long) 0), new Fraction (1), ST.createList(1, 1), 60);
       rep1.add(chord);
       List<RTree> rep = new ArrayList<RTree>();
-      rep.add(new RTree(1,null));
-      rep.add(new RTree(1,null));
-      rep.add(new RTree(1,null));
-      rep.add(new RTree(1,null));
-      rep.add(new RTree(1,null));
-      rep.add(new RTree(1,null));
-      rep.add(new RTree(1,null));
-      rep.add(new RTree(1,null));
-      rep.add(new RTree(1,null));
-      rep.add(new RTree(1,null));
-      rep.add(new RTree(1,null));
-      rep.add(new RTree(1,null));
-      RTree onert = new RTree(new Fraction (12,4),rep);
+      for (int i = 0; i < n; i++) {
+        rep.add(new RTree(1,null));
+      }
+      RTree onert = new RTree(new Fraction (n,4),rep);
       List<RTree> mes = new ArrayList<RTree>();
       mes.add(onert);
       object.fillVoice (mes, rep1, 60);
@@ -147,7 +167,8 @@ public class AIS3 implements Executable
     }
   }
 
-  private void updatePanel() {
+  public void updatePanel() {
+    System.out.println("AIS3.updatePanel");
     MusicalEditor ed = (MusicalEditor) panel.getEditor();
     Voice object;
     object = (Voice) ed.getObject();
@@ -155,14 +176,16 @@ public class AIS3 implements Executable
     for (MusicalObject meas : object.getElements()) {
       for (MusicalObject ch : ((Measure) meas).getElements()) {
         for (MusicalObject note : ((RChord) ch).getElements()) {
-          if (notes[i].isInstantiated()) {
-            ((RNote) note).setMidic(6000 + notes[i].getValue() * 100);
-            ((RNote) note).setDom(null);
-          }
-          else {
-            List<Integer> dom = new ArrayList<Integer> ();
-            dom.add(6000 + notes[i].getLB() * 100);dom.add(6000 + notes[i].getUB() * 100);
-            ((RNote) note).setDom(dom);
+          if (i < notes.length) {
+            if (notes[i].isInstantiated()) {
+              ((RNote) note).setMidic(6000 + notes[i].getValue() * 100);
+              ((RNote) note).setDom(null);
+            }
+            else {
+              List<Integer> dom = new ArrayList<Integer> ();
+              dom.add(6000 + notes[i].getLB() * 100);dom.add(6000 + notes[i].getUB() * 100);
+              ((RNote) note).setDom(dom);
+            }
           }
           i++;
         }

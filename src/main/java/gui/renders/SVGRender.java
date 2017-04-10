@@ -44,7 +44,7 @@ public SVGRender (FXCanvas view){
 }
 
 public void copyFonts(BufferedWriter out) {
-	File file1 = new File("/Users/agonc/Repmus-project/repmus-master/main/src/resources/templates/template.svg");
+	File file1 = new File("src/main/resources/templates/template.svg");
 	BufferedReader br;
 	try {
 		br = new BufferedReader(new FileReader(file1));

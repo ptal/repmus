@@ -139,22 +139,33 @@ return "projects.music.classes.music.Voice$VoiceTitle";
 //////////////////////PANEL//////////////////////
 public static class VoicePanel extends MusicalPanel {
 	private SpaceMachine machine;
+	private AIS3 ais;
 
 	public void KeyHandler(String car){
+		if (!car.isEmpty() && car.charAt(0) >= '1' && car.charAt(0) <= '9') {
+			if (machine != null) {
+				int note = car.charAt(0) - '1';
+				System.out.println(ais.notes[note]);
+				System.out.println(ais.constraints);
+				ais.constraints.join(ais.notes[note].eq(note));
+			}
+		}
 		switch (car) {
-		case "h" : takeSnapShot ();
-			break;
-		case "c":
-			setCSP();
-			break;
-		case "espace":
-			stepCSP();
-			break;
+			case "h" : takeSnapShot ();
+				break;
+			case "c":
+				System.out.println("Set CSP");
+				setCSP();
+				break;
+			case "espace":
+				System.out.println("Step CSP");
+				stepCSP();
+				break;
 		}
 	}
 
 	public void setCSP() {
-    AIS3 ais = new AIS3(12, this);
+    ais = new AIS3(10, this);
     Program program = ais.execute();
     machine = SpaceMachine.createDebug(program);
 		updatePanel(true);
@@ -164,6 +175,10 @@ public static class VoicePanel extends MusicalPanel {
 		if (machine != null) {
 			if (machine.execute() == MachineStatus.Terminated) { // We explored all solution.
 				machine = null;
+			}
+			else {
+				ais.updatePanel();
+				// machine.commit();
 			}
 		}
 	}
