@@ -145,8 +145,6 @@ public static class VoicePanel extends MusicalPanel {
 		if (!car.isEmpty() && car.charAt(0) >= '1' && car.charAt(0) <= '9') {
 			if (machine != null) {
 				int note = car.charAt(0) - '1';
-				System.out.println(ais.notes[note]);
-				System.out.println(ais.constraints);
 				ais.constraints.join(ais.notes[note].eq(note));
 			}
 		}
@@ -178,7 +176,7 @@ public static class VoicePanel extends MusicalPanel {
 			}
 			else {
 				ais.updatePanel();
-				// machine.commit();
+				machine.commit();
 			}
 		}
 	}

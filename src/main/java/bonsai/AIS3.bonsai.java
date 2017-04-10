@@ -25,7 +25,7 @@ public class AIS3 implements Executable
 {
   public world_line VarStore domains = bot;
   public world_line ConstraintStore constraints = bot;
-  public single_time FlatLattice<Consistent> consistent = bot;
+  public single_time L<Consistent> consistent = bot;
   public world_line LMax asn = bot;
 
   private int n;
@@ -117,20 +117,20 @@ public class AIS3 implements Executable
   }
 
   private static void printHeader(String message,
-    FlatLattice<Consistent> consistent)
+    L<Consistent> consistent)
   {
     System.out.print("["+message+"][" + consistent + "]");
   }
 
   private static void printModel(String message,
-    FlatLattice<Consistent> consistent, VarStore domains)
+    L<Consistent> consistent, VarStore domains)
   {
     printHeader(message, consistent);
     System.out.print(domains.model());
   }
 
   private static void printVariables(String message,
-    FlatLattice<Consistent> consistent, VarStore domains)
+    L<Consistent> consistent, VarStore domains)
   {
     printHeader(message, consistent);
     System.out.print(" Variables = [");

@@ -17,20 +17,43 @@ package bonsai.cp.core;
 import java.util.*;
 import inria.meije.rc.sugarcubes.*;
 import inria.meije.rc.sugarcubes.implementation.*;
+import org.chocosolver.solver.variables.*;
 import bonsai.runtime.core.*;
 import bonsai.runtime.choco.*;
 import bonsai.runtime.sugarcubes.*;
 
-public class Propagation implements Executable
+public class Propagation implements Executable, Resettable<Propagation>
 {
   private channel world_line VarStore domains = bot;
   private channel world_line ConstraintStore constraints = bot;
-  private channel single_time FlatLattice<Consistent> consistent = bot;
+  private channel single_time L<Consistent> consistent = bot;
+
+  public void reset(Propagation p) {}
 
   public proc execute() {
     loop {
       consistent <- PropagatorEngine.propagate(domains, constraints);
+      // ~printVariables("[After propagate]", consistent, domains);
+      // Hack to generate an event on domains.
+      domains <- domains;
       pause;
     }
+  }
+
+  private static void printHeader(String message,
+    L<Consistent> consistent)
+  {
+    System.out.print("["+message+"][" + consistent + "]");
+  }
+
+  private static void printVariables(String message,
+    L<Consistent> consistent, VarStore domains)
+  {
+    printHeader(message, consistent);
+    System.out.print(" Variables = [");
+    for (IntVar v : domains.vars()) {
+      System.out.print(v + ", ");
+    }
+    System.out.println("]");
   }
 }
