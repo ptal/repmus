@@ -1,6 +1,5 @@
 package projects.music.classes.music;
 
-import gui.FXCanvas;
 import gui.renders.I_Render;
 
 import java.util.ArrayList;
@@ -14,6 +13,8 @@ import kernel.tools.Fraction;
 import bonsai.AIS3;
 import bonsai.runtime.sugarcubes.*;
 import inria.meije.rc.sugarcubes.*;
+// import projects.constraints.AIS;
+// import projects.constraints.AIS2;
 import projects.music.classes.abstracts.MusicalObject;
 import projects.music.classes.abstracts.RTree;
 import projects.music.classes.abstracts.Sequence_S_MO;
@@ -40,7 +41,9 @@ public class Voice extends Sequence_S_MO implements I_RT {
 	List<RChord> originalchords;
 	public List<RTree> treelist;
 
-	@Ombuilder(definputs=" ( (4/4 ( 1 1 1 1)) ) ; ( RChord ((6000) , (80), (0), 1/4, (1) ) ; 60")
+	@Ombuilder(definputs=" ( (4/4 ( 1 1 [-text \"hola\"] 1 1)) ) ; ( RChord ((6000 6500 6700) , (80), (0), 1/4, (1)"
+			+ "RChord ((6200) , (80), (0), 1/4, (1)"
+			+ "RChord ((6400) , (80), (0), 1/4, (1)) ; 60")
 	public Voice (List<RTree> thetree, List<RChord> thechords, double tempo) {
 		treelist = thetree;
 		chords = thechords;
@@ -72,16 +75,16 @@ public class Voice extends Sequence_S_MO implements I_RT {
 		fillVoice(lastchord, 60);
 	}
 
-	/*public Voice () {
-		Voice copie = (Voice) JsonRead.getFile("/Users/agonc/JAVAWS/organum/invoice.json");
-		treelist = copie.treelist;
-		chords = copie.originalchords;
-		originalchords=copie.originalchords;
-		setTempo(copie.getTempo());
-		RChord lastchord = chords.get(0);
-		fillVoice(lastchord, 60);
-	}
-	*/
+	// public Voice () {
+	// 	Voice copie = (Voice) JsonRead.getFile("src/resources/json/violon2.json");
+	// 	treelist = copie.treelist;
+	// 	chords = copie.originalchords;
+	// 	originalchords=copie.originalchords;
+	// 	setTempo(copie.getTempo());
+	// 	RChord lastchord = chords.get(0);
+	// 	fillVoice(lastchord, 60);
+	// }
+
 
 	public void fillVoice (List<RTree> thetree, List<RChord> thechords, double tempo) {
 		removeAllelements();
@@ -110,8 +113,8 @@ public class Voice extends Sequence_S_MO implements I_RT {
 	}
 
 //////////////////////////////////////////////////
-public I_Drawable makeDrawable (MusicalParams params) {
-	return new VoiceDrawable (this, params, 0, true);
+public I_Drawable makeDrawable (MusicalParams params, boolean root) {
+	return new VoiceDrawable (this, params, 0, root);
 }
 
 
@@ -140,12 +143,20 @@ return "projects.music.classes.music.Voice$VoiceTitle";
 public static class VoicePanel extends MusicalPanel {
 	private SpaceMachine machine;
 	private AIS3 ais;
+	private int noteIdx = -1;
 
 	public void KeyHandler(String car){
+		System.out.println("KeyHandler: " + car);
 		if (!car.isEmpty() && car.charAt(0) >= '1' && car.charAt(0) <= '9') {
 			if (machine != null) {
-				int note = car.charAt(0) - '1';
-				ais.constraints.join(ais.notes[note].eq(note));
+				if (noteIdx == -1) {
+					noteIdx = car.charAt(0) - '1';
+				}
+				else {
+					int note = car.charAt(0) - '1';
+					ais.constraints.join(ais.notes[noteIdx].eq(note));
+					noteIdx = -1;
+				}
 			}
 		}
 		switch (car) {
@@ -155,7 +166,8 @@ public static class VoicePanel extends MusicalPanel {
 				System.out.println("Set CSP");
 				setCSP();
 				break;
-			case "espace":
+			case " ":
+			case "space":
 				System.out.println("Step CSP");
 				stepCSP();
 				break;
@@ -163,7 +175,7 @@ public static class VoicePanel extends MusicalPanel {
 	}
 
 	public void setCSP() {
-    ais = new AIS3(10, this);
+    ais = new AIS3(12, this);
     Program program = ais.execute();
     machine = SpaceMachine.createDebug(program);
 		updatePanel(true);
@@ -172,9 +184,12 @@ public static class VoicePanel extends MusicalPanel {
 	public void stepCSP () {
 		if (machine != null) {
 			if (machine.execute() == MachineStatus.Terminated) { // We explored all solution.
+				ais.updatePanel();
+				System.out.println("All solutions have been explored.");
 				machine = null;
 			}
 			else {
+				System.out.println("Visiting a new node.");
 				ais.updatePanel();
 				machine.commit();
 			}
@@ -186,6 +201,7 @@ public static class VoicePanel extends MusicalPanel {
 		return 2;
 	}
 }
+
 
 //////////////////////CONTROL//////////////////////
 public static class VoiceControl extends MusicalControl {
@@ -227,7 +243,6 @@ public void initVoiceDrawable (Voice theRef, MusicalParams theparams, int thesta
 		consTimeSpaceCurve(size, 0, params.zoom.get());
 	}
   }
-
 
 
 }

@@ -3,6 +3,12 @@ package projects.music.classes.abstracts;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.sound.midi.InvalidMidiDataException;
+import javax.sound.midi.ShortMessage;
+
+import projects.music.midi.I_PlayEvent;
+import projects.music.midi.PlayEvent.PlayEventMidi;
+
 public class Compose_S_MO extends Strie_MO{
 	public List<MusicalObject> elements = new ArrayList<MusicalObject>();
 ////////////////////////////////////////////////////////
@@ -62,4 +68,6 @@ public List<MusicalObject> getObjsOfClass (Class<?> clazz, List<MusicalObject> r
 			obj.getObjsOfClass(clazz, rep);
 	return rep;
 }
+
+
 }

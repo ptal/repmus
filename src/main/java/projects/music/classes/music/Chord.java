@@ -1,7 +1,6 @@
 package projects.music.classes.music;
 
 import gui.FX;
-import gui.FXCanvas;
 import gui.renders.I_Render;
 
 import java.util.ArrayList;
@@ -19,6 +18,7 @@ import kernel.tools.ST;
 import projects.music.classes.abstracts.MusicalObject;
 import projects.music.classes.abstracts.Parallel_L_MO;
 import projects.music.classes.music.Note.NoteDrawable;
+import projects.music.classes.music.RNote.RNoteDrawable;
 import projects.music.editors.MusicalControl;
 import projects.music.editors.MusicalEditor;
 import projects.music.editors.MusicalPanel;
@@ -29,6 +29,7 @@ import projects.music.editors.SpacedPacket;
 import projects.music.editors.StaffSystem;
 import projects.music.editors.StaffSystem.MultipleStaff;
 import projects.music.editors.drawables.ContainerDrawable;
+import projects.music.editors.drawables.Figure;
 import projects.music.editors.drawables.I_Drawable;
 
 @Omclass(icon = "139", editorClass = "projects.music.classes.music.Chord$ChordEditor")
@@ -156,8 +157,8 @@ public class Chord extends Parallel_L_MO {
 	}
 	
 //////////////////////////////////////////////////
-	public I_Drawable makeDrawable (MusicalParams params) {
-		return new ChordDrawable (this, params, 0, true);
+	public I_Drawable makeDrawable (MusicalParams params, boolean root) {
+		return new ChordDrawable (this, params, 0, root);
 	}
 
 	//////////////////////EDITOR//////////////////////
@@ -225,7 +226,7 @@ public class Chord extends Parallel_L_MO {
 
 	final int headSizefactor = 4; 
 	final int altSizefactor = 3; 
-	int staffnum = 0;
+	public int staffnum = 0;
 
 	public ChordDrawable (Chord theRef, MusicalParams params, int thestaffnum) {
 		InitChordDrawable(theRef, params, thestaffnum);
@@ -296,6 +297,7 @@ public class Chord extends Parallel_L_MO {
 		i++;
 	}
 	if (chordmode.equals("chord")) setAltPositions(getInside(), staff, scale);
+	makeGraphicExtras ();
 	}
 
 //ATTENTION a la taille de lalteration
@@ -351,18 +353,21 @@ public void setStemDir (double center) {
 
 /////////////////////////////////////////////
 
-public void drawObject(I_Render g, FXCanvas panel, Rectangle rect, 
+public void drawObject(I_Render g, Rectangle rect, 
 		 List<I_Drawable> selection, double x0, double deltax, double deltay) {
 	int size = params.fontsize.get();
+	double zoom = params.zoom.get()/100.0;
+	double posx = getCX() * zoom;
 	for (I_Drawable note : getInside()) {
-		note.drawObject (g, panel, rect, selection, x0 + (((NoteDrawable) note).centerX * size), 
+		note.drawObject (g,rect, selection, posx + (((NoteDrawable) note).centerX * size), 
 				deltax, deltay);
 		}
 	collectRectangle();
 	if (stem_p) {
-		drawStem(g, x0 + deltax + size * 0.278, y() - size/8, w(), h() - (size / 6), size);
+		drawStem(g, posx + deltax + size * 0.278, y() - size/8, w(), h() - (size / 6), size);
 	}
 	//drawRectSelection(g);
+	drawExtras(g, deltax);
 }
 
 public void drawStem (I_Render g, double x, double y, double w, double h, int size) {
@@ -388,27 +393,43 @@ public I_Drawable getClickedObject(double x, double y) {
 }
 */
 
-public void collectTemporalObjectsL(List<SpacedPacket> timelist) {
-	  timelist.add(new SpacedPacket(this, this.ref.getOnsetMS()));
-}
 
-public  Comparator<MusicalObject> pitchUp = new Comparator<MusicalObject>() {
-public int compare(MusicalObject n1, MusicalObject n2) {
-return  ((Note) n1).midic - ((Note) n2).midic;
-}
-};
+	public  Comparator<MusicalObject> pitchUp = new Comparator<MusicalObject>() {
+		public int compare(MusicalObject n1, MusicalObject n2) {
+			return  ((Note) n1).midic - ((Note) n2).midic;
+		}
+	};
 
-public  Comparator<MusicalObject> pitchDown = new Comparator<MusicalObject>() {
-public int compare(MusicalObject n1, MusicalObject n2) {
-return  ((Note) n2).midic - ((Note) n1).midic;
-}
-};
+	public  Comparator<MusicalObject> pitchDown = new Comparator<MusicalObject>() {
+		public int compare(MusicalObject n1, MusicalObject n2) {
+			return  ((Note) n2).midic - ((Note) n1).midic;
+		}
+	};
 
-public  Comparator<I_Drawable> byHead = new Comparator<I_Drawable>() {
-public int compare(I_Drawable n1, I_Drawable n2) {
-return  ((NoteDrawable) n2).deltaHead - ((NoteDrawable) n1).deltaHead;
-}
-};
+	public  Comparator<I_Drawable> byHead = new Comparator<I_Drawable>() {
+		public int compare(I_Drawable n1, I_Drawable n2) {
+			return  ((NoteDrawable) n2).deltaHead - ((NoteDrawable) n1).deltaHead;
+		}
+	};
+
+	@Override
+	public void computeCX(SpacedPacket pack, int size) {
+		double x0 = pack.start;
+		double deltal = 0;
+		double deltar = 0;
+		double strsize = 7.176000118255615;
+		for (I_Drawable note : getInside()) {
+			NoteDrawable thenote = (NoteDrawable) note;
+			deltal = Math.max( deltal , (thenote.deltaAlt * strsize * 3) / 10 );
+			deltar = Math.max( deltar ,  (thenote.deltaHead * strsize));
+		}
+		pack.updatePacket(0, 0, deltal, deltar + strsize);
+	} 
+	
+	@Override
+	public void collectTemporalObjects(List<SpacedPacket> timelist) {
+		timelist.add(new SpacedPacket(this, this.ref.getOnsetMS(), false));
+	}
 
 
 }

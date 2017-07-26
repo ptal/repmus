@@ -3,7 +3,7 @@ package kernel.frames.simples;
 import java.lang.reflect.Field;
 
 import gui.FX;
-import gui.FXPane;
+import gui.PaneFX;
 import gui.dialogitems.OmStaticText;
 import gui.dialogitems.OmTextEdit;
 import resources.Loader;
@@ -24,7 +24,7 @@ import kernel.metaobjects.BoxInput;
 import kernel.metaobjects.Patch.PatchPanel;
 import kernel.tools.Parser;
 
-public class InputBoxFrame  extends FXPane {
+public class InputBoxFrame  extends PaneFX {
 	
 	public ImageView imageview;
 	BoxInput input;
@@ -37,7 +37,7 @@ public class InputBoxFrame  extends FXPane {
 		imageview = new ImageView();	
 		Image image = Loader.getIconFromDic("185");
 		imageview.setImage(image);
-		((Pane) omGetDelegate()).getChildren().add(imageview);
+		getChildren().add(imageview);
 	}
 	
 	public void omMouseEntered (double x, double y) {
@@ -46,7 +46,7 @@ public class InputBoxFrame  extends FXPane {
 		if (FX.getCommandKey()) {
 			tp = new Tooltip(input.name);
 			hackTooltipStartTiming(tp);
-			Tooltip.install(this.omGetDelegate(), tp);
+			Tooltip.install(this, tp);
 		} else {
 			miniview = new OmStaticText(Parser.getString(input.val));
 			miniview.omSetViewPosition(box.x()+x(), Math.max(0,box.y()+y() - 20));
@@ -57,7 +57,7 @@ public class InputBoxFrame  extends FXPane {
 	public void omMouseExited (double x, double y) {
 		patch = (PatchPanel) this.omViewContainer().omViewContainer();
 		if (tp != null)
-			Tooltip.uninstall(this.omGetDelegate(), tp);
+			Tooltip.uninstall(this, tp);
 		tp = null;
 		if (miniview != null) {
 			patch.omRemoveSubview(miniview);
@@ -69,7 +69,7 @@ public class InputBoxFrame  extends FXPane {
 		BoxFrame box = (BoxFrame) this.omViewContainer();
 		patch = (PatchPanel) this.omViewContainer().omViewContainer();
 		if (tp != null)
-			Tooltip.uninstall(this.omGetDelegate(), tp);
+			Tooltip.uninstall(this, tp);
 		tp = null;
 		if (miniview != null) {
 			patch.omRemoveSubview(miniview);
@@ -86,8 +86,8 @@ public class InputBoxFrame  extends FXPane {
 	}
 	
 	public void connectionBind (DoubleProperty x, DoubleProperty y) {
-		DoubleProperty x1 = omViewContainer().omGetDelegate().layoutXProperty();
-		DoubleProperty y1 = omViewContainer().omGetDelegate().layoutYProperty();
+		DoubleProperty x1 = ((Pane) omViewContainer()).layoutXProperty();
+		DoubleProperty y1 = ((Pane) omViewContainer()).layoutYProperty();
 		DoubleBinding dbx = new DoubleBinding() {
 		  {super.bind(x, x1);}
             @Override

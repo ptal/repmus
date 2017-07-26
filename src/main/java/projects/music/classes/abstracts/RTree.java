@@ -4,8 +4,10 @@ package projects.music.classes.abstracts;
 import java.util.ArrayList;
 import java.util.List;
 
+import projects.music.classes.abstracts.extras.Extra;
+import projects.music.classes.abstracts.extras.I_Extra;
+import gui.CanvasFX;
 import gui.FX;
-import gui.FXCanvas;
 import gui.renders.I_Render;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeCell;
@@ -22,7 +24,8 @@ import kernel.frames.views.EditorView;
 import kernel.frames.views.I_EditorParams;
 import kernel.frames.views.PanelView;
 import kernel.tools.Fraction;
-
+import kernel.tools.ParseException;
+import kernel.tools.Parser;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -36,6 +39,7 @@ public class RTree implements I_OMObject {
 	public long prop;
 	public boolean cont_p = false;
 	public boolean meas_p = false;
+	public List<I_Extra> extras = null;
 
 	////////////////// Constructors	//////////////////
 	public  RTree (long theprop, boolean cont) {
@@ -160,10 +164,20 @@ public class RTree implements I_OMObject {
 		}
 	}
 
+	public static RTree RTreefromString (String str) {
+		try {
+			return Parser.RTreefromLlist(((List<Object>) Parser.parseString (str)), true);
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}
+	}
+		
 
 
 
-	public  void drawPreview (I_Render g, FXCanvas canvas, double x, double x1, double y, double y1, I_EditorParams params) {
+	public  void drawPreview (I_Render g, CanvasFX canvas, double x, double x1, double y, double y1, I_EditorParams params) {
 		FX.omDrawString (g, x + ((x1 - x) / 2),  y + ((y1 - y)/ 2), this.toString());
 	}
 
@@ -255,7 +269,7 @@ public class RTree implements I_OMObject {
 
     		text.setEffect(blend);
 
-    		((Pane) this.omGetDelegate()).getChildren().add(text);
+    		((Pane) this.delegate).getChildren().add(text);
     	}
     }
 

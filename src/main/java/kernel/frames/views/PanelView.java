@@ -2,25 +2,18 @@ package kernel.frames.views;
 
 import javafx.geometry.Point2D;
 import javafx.scene.paint.Color;
-import gui.FXPane;
+import gui.PaneScrollerFX;
 
 
 
-public class PanelView extends FXPane implements I_Panel{
+public class PanelView extends PaneScrollerFX implements I_Panel{
 	
-	public PanelView () {
-		super (true,true);
-	}
-	
-	public PanelView (boolean h, boolean v) {
-		super (h,v);
-	}
 	
 	public void init (){
-		omGetDelegate().setStyle("-fx-border-color: blue;");
+		setStyle("-fx-border-color: blue;");
 		delegate.requestFocus();
+		setPanelColor();
 	}
-	
 
 	public EditorView getEditor (){
 		return(EditorView)  omViewContainer();
@@ -40,6 +33,12 @@ public class PanelView extends FXPane implements I_Panel{
 	
 	@Override
 	public void updatePanel (boolean changed) {
+	}
+
+	@Override
+	public void KeyHandler(String car) {
+		// TODO Auto-generated method stub
+		
 	}
 	
 	////////////////////////////////////////////////

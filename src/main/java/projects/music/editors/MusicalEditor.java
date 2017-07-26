@@ -42,6 +42,12 @@ public class MusicalEditor extends EditorView {
 	///////////////////////////////////////////////////////////
 	//ACTIONS
 	///////////////////////////////////////////////////////////
+	public void  changeZoom (int deltasize){
+		MusicalParams params = (MusicalParams) getParams ();
+		MusicalPanel panel = (MusicalPanel) getPanel ();
+		params.zoom.set(params.zoom.get() + deltasize);
+		panel.updatePanel(false);
+		}
 	
 	public void  changeSize (int newsize){
 		MusicalParams params = (MusicalParams) getParams ();

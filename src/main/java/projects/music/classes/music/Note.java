@@ -1,10 +1,12 @@
 package projects.music.classes.music;
 
 import gui.FX;
-import gui.FXCanvas;
 import gui.renders.I_Render;
 
 import java.util.List;
+
+import javax.sound.midi.InvalidMidiDataException;
+import javax.sound.midi.ShortMessage;
 
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -23,15 +25,18 @@ import projects.music.editors.MusicalPanel;
 import projects.music.editors.MusicalParams;
 import projects.music.editors.MusicalTitle;
 import projects.music.editors.Scale;
+import projects.music.editors.SpacedPacket;
 import projects.music.editors.StaffSystem;
 import projects.music.editors.StaffSystem.MultipleStaff;
 import projects.music.editors.drawables.I_Drawable;
 import projects.music.editors.drawables.SimpleDrawable;
+import projects.music.midi.I_PlayEvent;
+import projects.music.midi.PlayEvent.PlayEventMidi;
 
 @Omclass(icon = "137", editorClass = "projects.music.classes.music.Note$NoteEditor")
 public class Note extends Simple_L_MO  {
 
-	 @Omvariable
+	@Omvariable
 	public int midic = 0;
 	 @Omvariable
 	public int vel = 0;
@@ -39,7 +44,7 @@ public class Note extends Simple_L_MO  {
 	public int chan = 0;
 	 @Omvariable
 	public int dur = 0; //voir si ne change rien
-	
+
 /*	@JsonCreator
 	public Note (int themidic, int thevel, long dur, int thechan) {
 		setOffset(0);
@@ -49,7 +54,7 @@ public class Note extends Simple_L_MO  {
 		chan = thechan;
 	}
 	*/
-	
+
 
 	public Note (int themidic, int thevel, long dur, int thechan, long offset) {
 		super ();
@@ -59,104 +64,112 @@ public class Note extends Simple_L_MO  {
 		vel = thevel;
 		chan = thechan;
 	}
-	 
+
 	@Ombuilder(definputs="6000; 80; 1000; 1")
 	public Note (int themidic, int thevel, long dur, int thechan) {
 		this (themidic,thevel, dur, thechan, 0);
 	}
-	 
+
 	 public Note() {
 	    this (6000,80,1000,1,0);
 	 }
-	 
+
 	//////////////////////////////////////
-	
+
 	public int getMidic () {
 		return midic;
 	}
-	
+
 	public void setMidic (int themidic) {
 		 midic = themidic;
 	}
-	
+
 	public int getChan () {
 		return chan;
 	}
-	
+
 	public void setChan (int thechan) {
 		 chan = thechan;
 	}
-	
+
 	public int getVel () {
 		return vel;
 	}
-	
+
 	public void setVel (int thevel) {
 		 vel = thevel;
 	}
-	
-	public I_Drawable makeDrawable (MusicalParams params) {
-		return new NoteDrawable (this, params, 0);
+
+	public I_Drawable makeDrawable (MusicalParams params, boolean root) {
+		return new NoteDrawable (this, params, 0, root);
 	}
-	
-	
+
+	@Override
+	public void PrepareToPlayMidi (long at , int approx, List<I_PlayEvent> list) {
+
+    	try {
+    		ShortMessage msg1 = new ShortMessage ();
+			msg1.setMessage(ShortMessage.NOTE_ON + getChan(), getMidic()/100, getVel());
+			ShortMessage msg2 = new ShortMessage ();
+	    	msg2.setMessage(ShortMessage.NOTE_OFF + getChan(), getMidic()/100, 0);
+			PlayEventMidi noteOn = new PlayEventMidi(msg1, at);
+			PlayEventMidi noteOff = new PlayEventMidi(msg2, at + this.getDuration());
+			list.add(noteOn);
+			list.add(noteOff);
+		} catch (InvalidMidiDataException e) {
+			e.printStackTrace();
+		}
+	}
 	//////////////////////////////////////////////////
 	//////////////////////EDITOR//////////////////////
 	//////////////////////////////////////////////////
     public static class NoteEditor extends MusicalEditor {
-    	
-    	
+
+
         @Override
     	public String getPanelClass (){
     		return "projects.music.classes.music.Note$NotePanel";
     	}
-        
+
         @Override
     	public String getControlsClass (){
     		return "projects.music.classes.music.Note$NoteControl";
     	}
-        
+
         @Override
     	public String getTitleBarClass (){
     		return "projects.music.classes.music.Note$NoteTitle";
     	}
-        
+
     }
-    
+
     //////////////////////PANEL//////////////////////
     public static class NotePanel extends MusicalPanel {
-    	
+
     	public void KeyHandler(String car){
    		 switch (car) {
-			 case "h" : takeSnapShot ();
-	 					break;
-			 case "c": delegate.setScaleX( delegate.getScaleX() * 1.1);
-			 		   delegate.setScaleY( delegate.getScaleY() * 1.1);
-			 		   break;
-			 case "C": delegate.setScaleX( delegate.getScaleX() * 0.9);
-			 		   delegate.setScaleY( delegate.getScaleY() * 0.9);
-			 		   break;
+			 default : super.KeyHandler(car);;
    		 }
     	}
-    	
+
     	@Override
     	public int getZeroPosition () {
     		return 2;
     	}
-    	
-    }	
-    
-    
+
+    }
+
+
     //////////////////////CONTROL//////////////////////
     public static class NoteControl extends MusicalControl {
-    	
-    }	
-    
+
+    }
+
     //////////////////////TITLE//////////////////////
     public static class NoteTitle extends MusicalTitle {
-    	
-    }	
-    
+
+    }
+
     /////////////////////DRAWABLE///////////////////
     public static class NoteDrawable extends SimpleDrawable {
     	public String head = MusChars.head_1_4;
@@ -171,21 +184,21 @@ public class Note extends Simple_L_MO  {
     	boolean tied_p;
     	int auxlines;
 
-    	final int headSizefactor = 4; 
+    	final int headSizefactor = 4;
     	final int altSizefactor = 3;
-    	
+
     	public double centerX;
-    	int staffnum = 0;
+    	public int staffnum = 0;
 
     public NoteDrawable (Note theRef, MusicalParams params, int thestaffnum, boolean ed_root) {
     		editor_root = ed_root;
     		InitNoteDrawable(theRef, params, thestaffnum);
     }
-    
+
     public NoteDrawable (Note theRef, MusicalParams params, int thestaffnum) {
     	InitNoteDrawable (theRef, params, thestaffnum);
-    }	
-    
+    }
+
     public void InitNoteDrawable (Note theRef, MusicalParams theparams, int thestaffnum) {
     	params = theparams;
     	staffnum = thestaffnum;
@@ -200,8 +213,8 @@ public class Note extends Simple_L_MO  {
     	centerY = staff.getPosY (scale, theRef.getMidic());
     	centerX = (2 + staffSystem.getXmarge()) * size;
     	double staffToppixels = staff.getTopPixel(size);
-    	setRectangle ((2 + staffSystem.getXmarge()) * size, 
-    						staffToppixels + (centerY * size/8), 
+    	setRectangle ((2 + staffSystem.getXmarge()) * size,
+    						staffToppixels + (centerY * size/8),
     						size/2, size/4);
     	/*if (editor_root) {
 			makeSpaceObjectList();
@@ -209,7 +222,8 @@ public class Note extends Simple_L_MO  {
 		}*/
     }
 
-    public void drawObject(I_Render g, FXCanvas panel, Rectangle rect, List<I_Drawable> selection, double x0, 
+    @Override
+    public void drawObject(I_Render g, Rectangle rect, List<I_Drawable> selection, double x0,
     		double deltax, double deltay) {
     	Font omicronFont = params.getFont("microSize");
     	Font omHeads = params.getFont("headSize");;
@@ -220,7 +234,7 @@ public class Note extends Simple_L_MO  {
     	double stafftoppixels = staff.getTopPixel(size);
     	int xPos = (int) Math.round (x() + x0 + ((deltaHead * size) / headSizefactor));
     	long posAlt = xPos;
-    	if (altChar != "") posAlt = Math.round (x() + x0  - ((deltaAlt * size * 3) / 10));
+    	if (altChar != "") posAlt = Math.round (x() + x0 - ((deltaAlt * size * 3) / 10));
     	double yPos = stafftoppixels + (centerY * dent/2);
     	double strsize = FX.omStringSize(head,omHeads);
     	FX.omDrawString(g, xPos, yPos, head);
@@ -230,7 +244,7 @@ public class Note extends Simple_L_MO  {
     		FX.omSetFont(g, omHeads);
     	}
     	StaffSystem.drawAuxLines (g, auxlines, size, xPos, yPos, staff, strsize);
-    	drawSlot (g, panel, xPos, yPos, params);
+    	drawSlot (g, xPos, yPos, params);
     }
 
     public void drawSelection(I_Render g, List<I_Drawable> selection){
@@ -248,7 +262,7 @@ public class Note extends Simple_L_MO  {
     	return MusChars.dynamicsArray[MusChars.dynamicsMidiArray.length - 1];
     }
 
-    public void drawSlot (I_Render g, FXCanvas view, double xPos, double yPos, MusicalParams params) {
+    public void drawSlot (I_Render g, double xPos, double yPos, MusicalParams params) {
     	Color oldcolor = FX.omGetColorFill(g);
     	String slot = params.slotmode.get();
     	int size = params.fontsize.get();
@@ -281,8 +295,8 @@ public class Note extends Simple_L_MO  {
     	FX.omSetColorFill(g, oldcolor);
     }
 
-    public void drawExtras (I_Render g, FXCanvas view, int size, double xPos, double yPos, int zoom) {
-    	
+    public void drawExtras (I_Render g, MusicalPanel view, int size, double xPos, double yPos, int zoom) {
+
     }
 
     @Override
@@ -294,6 +308,11 @@ public class Note extends Simple_L_MO  {
     	return rep;
     }
 
+    @Override
+    public void collectTemporalObjects(List<SpacedPacket> timelist) {
+  	  timelist.add(new SpacedPacket(this, this.ref.getOnsetMS(), false));
+  }
+
     }
 
     /*(defmethod om-get-menu-context ((object grap-note))
@@ -303,22 +322,22 @@ public class Note extends Simple_L_MO  {
     		  (let* ((alt (find-alt-list (midic (reference object))))
     		        (item1 (first alt)) (item2 (second alt)) (item3 (third alt))
     		        (menu1 (om-new-leafmenu (string+ (get-note-name (car item1)) (case (second item1) (-2 "bb") (-1 "b") (0 ".") (1 "#") (2 "##") (t "")))
-    		                                #'(lambda () 
+    		                                #'(lambda ()
     		                                    (set-note-tonalite (reference object) (car item1) (second item1))
     		                                    (update-panel (panel (editor (om-front-window)))))
     		                                ))
     		        (menu2 (om-new-leafmenu (string+ (get-note-name (car item2)) (case (second item2) (-2 "bb") (-1 "b") (0 ".") (1 "#") (2 "##") (t "")))
-    		                           #'(lambda () 
+    		                           #'(lambda ()
     		                               (set-note-tonalite (reference object) (car item2) (second item2))
     		                               (update-panel (panel (editor (om-front-window)))))
     		                           ))
     		        (menu3 (when (car item3) (om-new-leafmenu (string+ (get-note-name (car item3)) (case (second item3) (-2 "bb") (-1 "b") (0 ".") (1 "#") (2 "##") (t "")))
-    		                                                  #'(lambda () 
+    		                                                  #'(lambda ()
     		                                                      (set-note-tonalite (reference object) (car item3) (second item3))
     		                                                      (update-panel (panel (editor (om-front-window)))))
     		                                                  )))
     		        (menureset (om-new-leafmenu (string+ "init.")
-    		                                #'(lambda () 
+    		                                #'(lambda ()
     		                                    (set-tonalite (reference object) nil)
     		                                    (update-panel (panel (editor (om-front-window)))))
     		                                )))

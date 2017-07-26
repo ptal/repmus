@@ -43,7 +43,7 @@ public class AIS3 implements Executable
     ~modelChoco(domains, constraints);
     ~printModel("After initialization", consistent, domains);
     engine();
-    ~printVariables("Solution", consistent, domains);
+    ~printNotes("Solution", consistent, domains);
   }
 
   proc engine() {
@@ -53,7 +53,7 @@ public class AIS3 implements Executable
     || run propagation;
     || run branching.split();
     || stopAsn();
-    // || displaySolution();
+    || displaySolution();
     // || loop { stop; }
     end
   }
@@ -62,7 +62,7 @@ public class AIS3 implements Executable
     loop {
       ~System.out.println("displaySolution");
       par
-      || when domains |= constraints {
+      || when consistent |= Consistent.True {
          ~System.out.println("displaySolution.true");
           stop;
          }
@@ -98,22 +98,28 @@ public class AIS3 implements Executable
   public void modelChoco(VarStore domains, ConstraintStore constraints)
   {
     Model model = domains.model();
-    notes = model.intVarArray("s", n, 0, n - 1, false);
-    intervals = model.intVarArray("V", n - 1, 1, n - 1, false);
-    // for(int i = 0; i < n; i++) {
-    //   notes[i] = (IntVar) domains.alloc(new IntDomain(0, n-1));
-    // }
-    // for(int i = 0; i < n - 1; i++) {
-    //   intervals[i] = (IntVar) domains.alloc(new IntDomain(1, n-1));
-    // }
+    // notes = model.intVarArray("s", n, 0, n - 1, false);
+    // intervals = model.intVarArray("V", n - 1, 1, n - 1, false);
+    notes = new IntVar[n];
+    intervals = new IntVar[n-1];
+    for(int i = 0; i < n; i++) {
+      notes[i] = (IntVar) domains.alloc(new IntDomain(0, n-1));
+    }
+    for(int i = 0; i < n - 1; i++) {
+      intervals[i] = (IntVar) domains.alloc(new IntDomain(1, n-1));
+    }
 
     constraints.join(new AllDifferent(notes, "DEFAULT"));
     constraints.join(new AllDifferent(intervals, "DEFAULT"));
     for (int i=0; i < n-1; i++){
       constraints.join(model.distance(notes[i+1], notes[i], "=", intervals[i]));
     }
-    constraints.join(model.arithm(notes[0], "<", notes[n-1]));
-    constraints.join(model.arithm(intervals[0], "<", intervals[1]));
+    // constraints.join(model.arithm(notes[0], "<", notes[n-1]));
+    // constraints.join(model.arithm(intervals[0], "<", intervals[1]));
+    constraints.join(model.arithm(notes[0], "=", 1));
+    // constraints.join(model.arithm(notes[1], "=", 11));
+    // constraints.join(model.arithm(notes[2], "=", 1));
+    // constraints.join(model.arithm(notes[3], "=", 7));
   }
 
   private static void printHeader(String message,
@@ -129,12 +135,12 @@ public class AIS3 implements Executable
     System.out.print(domains.model());
   }
 
-  private static void printVariables(String message,
+  private void printNotes(String message,
     L<Consistent> consistent, VarStore domains)
   {
     printHeader(message, consistent);
     System.out.print(" Variables = [");
-    for (IntVar v : domains.vars()) {
+    for (IntVar v : notes) {
       System.out.print(v + ", ");
     }
     System.out.println("]");

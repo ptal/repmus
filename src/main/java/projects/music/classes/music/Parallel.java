@@ -1,20 +1,19 @@
 	package projects.music.classes.music;
 
 
-	import gui.FXCanvas;
 import gui.renders.I_Render;
 
-	import java.util.ArrayList;
+import java.util.ArrayList;
 import java.util.List;
 
-	import javafx.scene.text.Font;
+import javafx.scene.text.Font;
 import kernel.annotations.Ombuilder;
 import kernel.annotations.Omclass;
 import kernel.frames.views.I_EditorParams;
 
-	import com.sun.javafx.geom.Rectangle;
+import com.sun.javafx.geom.Rectangle;
 
-	import projects.music.classes.abstracts.MusicalObject;
+import projects.music.classes.abstracts.MusicalObject;
 import projects.music.classes.abstracts.Parallel_S_MO;
 import projects.music.classes.abstracts.Parallel_L_MO;
 import projects.music.classes.music.Parallel.ParallelDrawable;
@@ -49,11 +48,7 @@ import projects.music.editors.drawables.StaffBound;
 		
 		public Parallel () {
 			List<MusicalObject> elems = new ArrayList<MusicalObject> ();
-			elems.add(new Note());
-			elems.add(new Chord());
-			elems.add(new ChordSeq());
-			elems.add(new SeqChord());
-			elems.add(new MultiSeq());
+			elems.add(new Silence());
 			long onset = 0;
 			for (MusicalObject obj : elems)  {
 				addElement(obj);
@@ -68,7 +63,7 @@ import projects.music.editors.drawables.StaffBound;
 			return params;
 		}
 		
-		public  void drawPreview (I_Render g, FXCanvas canvas, double x, double x1, double y, double y1, I_EditorParams edparams) {
+		public  void drawPreview (I_Render g, MusicalPanel canvas, double x, double x1, double y, double y1, I_EditorParams edparams) {
 			/*MusicalParams params = (MusicalParams) edparams;
 			int size = params.fontsize.get();
 			g.omSetFont(params.getFont("headSize"));
@@ -89,8 +84,8 @@ import projects.music.editors.drawables.StaffBound;
 
 		
 	//////////////////////////////////////////////////
-	public I_Drawable makeDrawable (MusicalParams params) {
-		return new ParallelDrawable (this, params, true);
+	public I_Drawable makeDrawable (MusicalParams params, boolean root) {
+		return new ParallelDrawable (this, params, root);
 	}
 
 
@@ -170,13 +165,13 @@ import projects.music.editors.drawables.StaffBound;
 			MusicalParams param = obj.getParams();
 			param.getStaff().setMarges(1, 4);
 			paramslist.add(param);
-			I_Drawable drawable = obj.makeDrawable(param);
+			I_Drawable drawable = obj.makeDrawable(param, false);
 			inside.add(drawable);
-			drawable.setFather(this);
+			//drawable.setFather(this);
 		}	
 		if (editor_root) {
 			makeSpaceObjectList();
-			consTimeSpaceCurve(size, 0,params.zoom.get());
+			consTimeSpaceCurve(size, 0, params.zoom.get());
 		}
 	  }	
 
@@ -209,11 +204,11 @@ import projects.music.editors.drawables.StaffBound;
 	public void collectTemporalObjectsS(List<SpacedPacket> timelist) {
 		int i = 0;
 		for (I_Drawable obj : getInside()) {
-			StaffBound ss = new StaffBound(paramslist.get(i), false);
-			StaffBound es  = new StaffBound(paramslist.get(i), true);
-			timelist.add(new SpacedPacket(ss, obj.getRef().getOnsetMS()));
-			timelist.add(new SpacedPacket(es, obj.getRef().getOnsetMS() + obj.getRef().getDuration()));
-			((SimpleDrawable) obj).collectTemporalObjectsS(timelist);
+			StaffBound ss = new StaffBound(paramslist.get(i),((SimpleDrawable) obj).ref, false);
+			StaffBound es  = new StaffBound(paramslist.get(i), ((SimpleDrawable) obj).ref, true);
+			timelist.add(new SpacedPacket(ss, obj.getRef().getOnsetMS(), false));
+			timelist.add(new SpacedPacket(es, obj.getRef().getOnsetMS() + obj.getRef().getDuration(), false));
+			((SimpleDrawable) obj).collectTemporalObjects(timelist);
 			i++;
 		}
 	  }

@@ -16,6 +16,7 @@ import projects.music.editors.MusicalParams;
 import projects.music.editors.MusicalTitle;
 import projects.music.editors.drawables.ContainerDrawable;
 import projects.music.editors.drawables.I_Drawable;
+import projects.music.editors.drawables.SimpleDrawable;
 
 	@Omclass(icon = "224", editorClass = "projects.music.classes.music.MultiSeq$MultiSeqEditor")
 	public class MultiSeq extends Parallel_L_MO {
@@ -31,8 +32,11 @@ import projects.music.editors.drawables.I_Drawable;
 			List<MusicalObject> voices = new ArrayList<MusicalObject> ();
 			voices.add(new ChordSeq());
 			voices.add(new SeqChord());
+			voices.add(new MidiFile());
 			for (MusicalObject obj : voices) 
 				addElement(obj);
+			setOffset(0);
+			setDurPar();
 		}
 	
 		public MusicalParams getParams() {
@@ -42,8 +46,8 @@ import projects.music.editors.drawables.I_Drawable;
 		}
 		
 	//////////////////////////////////////////////////
-	public I_Drawable makeDrawable (MusicalParams params) {
-	return new MultiSeqDrawable (this, params, true);
+	public I_Drawable makeDrawable (MusicalParams params, boolean root) {
+		return new MultiSeqDrawable (this, params, root);
 	}
 
 	//////////////////////EDITOR//////////////////////
@@ -73,8 +77,9 @@ import projects.music.editors.drawables.I_Drawable;
 
 		public void KeyHandler(String car){
 			switch (car) {
-			case "h" : takeSnapShot ();
-			break;
+				case "h" : takeSnapShot ();break;
+				default	:
+					super.KeyHandler(car); break;
 			}
 		}
 
@@ -119,12 +124,13 @@ import projects.music.editors.drawables.I_Drawable;
 				inside.add(gvoice);
 				gvoice.setFather(this);
 			}
-			else {
+			else if (obj instanceof SeqChord) {
 				SeqChordDrawable gvoice = new SeqChordDrawable ((SeqChord) obj, params, i++);
 				inside.add(gvoice);
 				gvoice.setFather(this);
 			}
-		}	
+		}
+		
 		if (editor_root) {
 			makeSpaceObjectList();
 			consTimeSpaceCurve(size, 0,params.zoom.get());

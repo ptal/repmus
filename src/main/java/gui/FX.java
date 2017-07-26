@@ -123,13 +123,13 @@ public class FX {
 						y1 + (y + arrowlength * Math.sin(angle)));
 			}
 		}
-	
+
 	public static void omOpenBrace (I_Render r, double x, double y, double w, double h){
 		//omDrawRect(r, x, y , w ,h );
 		omDrawBezierCurve(r, x+w, y, x, y + h/2, x , y + h/8, x+w+w, y + h* 3/8);
 		omDrawBezierCurve(r, x, y+ h/2, x+w, y+h,  x+w , y+h*5/8, x, + y + h*7/8);
 	}
-	
+
 
 	public static void omDrawString (I_Render r, double x, double y, String str) {
         r.omDrawString(x, y, str);
@@ -331,7 +331,7 @@ public class FX {
     	float size = fontLoader.computeStringWidth(str, font);
     	return size;
     }
-    
+
 
 
 
@@ -379,10 +379,10 @@ public class FX {
     }
 
     public static Color [] SixtheenColors ={
-    	transp(Color.BLUE, 0.7), transp(Color.CRIMSON, 0.7), transp(Color.DARKORANGE, 0.7), transp(Color.DARKVIOLET, 0.7),
+    	transp(Color.DODGERBLUE, 0.7), transp(Color.CRIMSON, 0.7), transp(Color.DARKORANGE, 0.7), transp(Color.DARKVIOLET, 0.7),
     	transp(Color.FIREBRICK, 0.7), transp(Color.GOLD, 0.7), transp(Color.HOTPINK, 0.7), transp(Color.LINEN, 0.7),
     	transp(Color.MAGENTA, 0.7), transp(Color.NAVY, 0.7), transp(Color.ORANGERED, 0.7), transp(Color.YELLOW, 0.7),
-    	transp(Color.SADDLEBROWN, 0.7), transp(Color.ROYALBLUE, 0.7), transp(Color.PLUM, 0.7), transp(Color.DODGERBLUE, 0.7)};
+    	transp(Color.SADDLEBROWN, 0.7), transp(Color.ROYALBLUE, 0.7), transp(Color.PLUM, 0.7), transp(Color.BLUE, 0.7)};
 
 
 

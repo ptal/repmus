@@ -11,6 +11,8 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 import projects.music.classes.abstracts.RTree;
+import projects.music.classes.abstracts.extras.Extra;
+import projects.music.classes.abstracts.extras.I_Extra;
 import projects.music.classes.music.RChord;
 import projects.music.editors.StaffSystem;
 import kernel.tools.generated.grammar1Lexer;
@@ -22,6 +24,7 @@ public class Parser {
 		Object rep;
 		Class<?> theclass = clazz;
 		rep = parseString(str);
+		System.out.print ("el rep " + rep);
 		if (theclass == long.class) rep = new Long ((int) rep);
 		else if (theclass == Fraction.class && rep .getClass() != Fraction.class)
 			rep = new Fraction((int) rep);
@@ -42,7 +45,6 @@ public class Parser {
 		
 	public static Object [] getInputsDef (String str, Constructor met) throws ParseException {
 		String [] inputs = str.split(";");
-		
 		Class<?>[] types  = met.getParameterTypes();
 		int len = types.length;
 		Type[] gpType = met.getGenericParameterTypes();
@@ -75,7 +77,8 @@ public class Parser {
 		//"Note (6000, 100, 100, 1))"
 		// "NCercle (12, ((1 5 7)))"
 		// "ChordSeq ( ((6000)), (0), ((1000)), ((80)), ((0)), ((1)), 100)"
-	
+
+	// "(4/4 ( 1 1 [text "hola"] -1))"
 	// "Voice ( ( (4/4 ( 1 2 -1))) , ( RChord ((6000), (80), (0), 1/8, (1))) , 60)"
 	
 	public static Object parseString (String arg) throws ParseException  {
@@ -106,8 +109,19 @@ public class Parser {
 		List<RTree> propor = new ArrayList<RTree> ();
 		List<Object> plist = (List<Object>) list.get(1);
 		for (Object item : plist) {
-			if (item.getClass().getName().equals("java.util.ArrayList"))
-				propor.add(RTreefromLlist((List<Object>)  item, false));
+			if (item.getClass().getName().equals("java.util.ArrayList")) {
+				if ( ((ArrayList) item).size() > 0) {
+					if (((ArrayList) item).get(0) instanceof Extra) {
+						List<I_Extra> extralist = new ArrayList<I_Extra> ();
+						for (Object elem : ((ArrayList) item)) {
+							extralist.add((I_Extra) elem);
+						}
+						propor.get(propor.size()-1).extras = extralist;
+					}
+					else
+						propor.add(RTreefromLlist((List<Object>)  item, false));
+				}
+			}
 			else if (item.getClass().getName().equals("java.lang.Integer"))
 				propor.add(new RTree (new Long ((int) item), false));
 			else if (item.getClass().getName().equals("java.lang.Float"))
@@ -125,7 +139,7 @@ public class Parser {
 	
 	public static void main(String[] args) throws ParseException  {
 		try {
-			ANTLRInputStream in = new ANTLRInputStream("[ G {GF G} U1]");
+			ANTLRInputStream in = new ANTLRInputStream("(4/4 ( 1 1 [-text \"hola\"] -1))");
 			// flux de caractères -> analyseur lexical
 			grammar1Lexer lexer = new grammar1Lexer(in);
 			// analyseur lexical -> flux de tokens
@@ -133,13 +147,11 @@ public class Parser {
 			// flux tokens -> analyseur syntaxique
 			grammar1Parser parser =	new grammar1Parser(tokens);
 			// démarage de l'analyse syntaxique
-			grammar1Parser.SystemContext rep = parser.system();	
+			grammar1Parser.RtContext rep = parser.rt();	
 			// parcours de l'arbre syntaxique et appels du Listener
 			ParseTreeWalker walker = new ParseTreeWalker();
 			ParserListener extractor = new ParserListener();
-			walker.walk(extractor, rep);	
-			System.out.println("");
-			System.out.println("la reponse es : " +  rep.rep);
+			walker.walk(extractor, rep);
 		} catch (Exception e) {
 			System.out.println("Uy error : " + e);
 		}

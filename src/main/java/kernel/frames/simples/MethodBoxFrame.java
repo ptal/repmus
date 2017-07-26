@@ -5,12 +5,11 @@ import java.util.List;
 
 import resources.Loader;
 import javafx.geometry.Point2D;
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.MenuItem;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import gui.CanvasFX;
 import gui.FX;
-import gui.FXCanvas;
 import gui.renders.GCRender;
 import gui.renders.I_Render;
 import kernel.interfaces.I_Box;
@@ -58,8 +57,7 @@ public class MethodBoxFrame extends BoxFrame {
      		omAddSubviews (output);
      	}
      	
-     	canvas = new BoxMethodCanvas(icon, name, namew);
-     	canvas.omSetViewSize(w(),h() - 18);
+     	canvas = new BoxMethodCanvas(icon, name, namew, w(),h() - 18);
      	canvas.omSetViewPosition(0, 9);
      	omAddSubviews(canvas);
      	canvas.omUpdateView(true);
@@ -102,14 +100,14 @@ public class MethodBoxFrame extends BoxFrame {
 
 	}
 
-protected class BoxMethodCanvas extends FXCanvas{
+protected class BoxMethodCanvas extends CanvasFX{
 	Image icon;
 	Point2D iconsize;
 	String name;
 	double namesize;
 	
-	public BoxMethodCanvas (Image theicon, String thename, double size) {
-		super();
+	public BoxMethodCanvas (Image theicon, String thename, double size, double w, double h) {
+		super(w, h);
      	icon = theicon;
      	name = thename;
      	iconsize = new Point2D (icon.getWidth(), icon.getHeight());

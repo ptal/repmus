@@ -12,23 +12,24 @@ import javafx.scene.input.DragEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.paint.Color;
-import gui.FXCanvas;
+import gui.CanvasScrollerFX;
 import gui.dialogitems.OmMenu;
 import gui.dialogitems.OmMenuItem;
 
 
 
-public class PanelCanvas extends FXCanvas implements I_Panel{
-	public PanelCanvas () {
-		super (false,false);
-	}
+public class PanelCanvas extends CanvasScrollerFX implements I_Panel{
 	
-	public PanelCanvas (boolean h, boolean v) {
-		super (h,v);
+	public PanelCanvas (double w, double h) {
+		super (w,h);
 	}
 	
 	public void init (){
 		delegate.requestFocus();
+		setPanelColor();
+	}
+	
+	public void KeyHandler (String car) {
 	}
 	
 	public EditorView getEditor (){

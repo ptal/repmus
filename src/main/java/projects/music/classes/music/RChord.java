@@ -1,7 +1,6 @@
 package projects.music.classes.music;
 
 import gui.FX;
-import gui.FXCanvas;
 import gui.renders.I_Render;
 
 import java.util.ArrayList;
@@ -46,7 +45,7 @@ import projects.music.editors.drawables.I_FigureDrawable;
 
 @Omclass(icon = "139", editorClass = "projects.music.classes.music.RChord$RChordEditor")
 public class RChord extends Parallel_S_MO implements I_RT, I_InRSeqChord {
-	
+
 	@Omvariable
 	public List<Integer> lmidic;
 	@Omvariable
@@ -57,10 +56,10 @@ public class RChord extends Parallel_S_MO implements I_RT, I_InRSeqChord {
 	public List<Long> loffset;
 	@Omvariable
 	public Fraction dur;
-	
+
 	public boolean cont_p = false;
 	Point2D ambitus;
-	
+
 	//appele par group ou measure
 	public RChord (Fraction dur, RChord chord, double tempo, boolean iscont) {
 		cont_p = iscont;
@@ -71,12 +70,12 @@ public class RChord extends Parallel_S_MO implements I_RT, I_InRSeqChord {
 	public RChord (List<Integer> themidic, List<Integer> thevel, List<Long> theoffset, Fraction thedur, List<Integer> thechan) {
 		this (themidic, thevel, theoffset, thedur, thechan, 60);
 	}
-		
+
 	public RChord (List<Integer> themidic, List<Integer> thevel, List<Long> theoffset, Fraction thedur, List<Integer> thechan, int tempo) {
 		setOffset(0);
 		initChordRythmic(themidic, thevel, theoffset, thedur, thechan, tempo);
 	}
-	
+
 	public RChord () {
 		List<Integer> themidic = new ArrayList<Integer> ();
 		themidic.add(6000);
@@ -87,10 +86,23 @@ public class RChord extends Parallel_S_MO implements I_RT, I_InRSeqChord {
 		List<Integer> thechan = new ArrayList<Integer> ();
 		thechan.add(1);
 		setOffset(0);
-		initChordRythmic(themidic, thevel, theoffset, new Fraction(5,12), thechan, 60);
+		initChordRythmic(themidic, thevel, theoffset, new Fraction(1,4), thechan, 60);
 	}
-	
-	public void initChordRythmic (List<Integer> themidic, List<Integer> thevel, 
+
+	public RChord (int midic) {
+		List<Integer> themidic = new ArrayList<Integer> ();
+		themidic.add(midic);
+		List<Integer> thevel = new ArrayList<Integer> ();
+		thevel.add(80);
+		List<Long> theoffset = new ArrayList<Long> ();
+		theoffset.add((long) 0);
+		List<Integer> thechan = new ArrayList<Integer> ();
+		thechan.add(1);
+		setOffset(0);
+		initChordRythmic(themidic, thevel, theoffset, new Fraction(1,4), thechan, 60);
+	}
+
+	public void initChordRythmic (List<Integer> themidic, List<Integer> thevel,
 			List<Long> theoffset, Fraction thedur, List<Integer> thechan, double tempo) {
 		lmidic = themidic;
 		lvel = thevel;
@@ -141,62 +153,62 @@ public class RChord extends Parallel_S_MO implements I_RT, I_InRSeqChord {
 	public List<Integer> getLMidic () {
 		return lmidic;
 	}
-	
+
 	public void setLMidic (List<Integer> midic) {
 		lmidic = midic;
 	}
-	
+
 	public List<Integer> getLVel () {
 		return lmidic;
 	}
-	
+
 	public void setLVel (List<Integer> midic) {
 		lmidic = midic;
 	}
-	
+
 	public List<Integer> getLChan () {
 		return lmidic;
 	}
-	
+
 	public void setLChan (List<Integer> midic) {
 		lmidic = midic;
 	}
-	
+
 
 	public Point2D getAmbitus () {
 		return ambitus;
 	}
-	
+
 //////////////////////////////////////////////////
-	public I_Drawable makeDrawable (MusicalParams params) {
-		return new RChordDrawable (this, params, 0, true);
+	public I_Drawable makeDrawable (MusicalParams params, boolean root) {
+		return new RChordDrawable (this, params, 0, root);
 	}
 
 
 	//////////////////////EDITOR//////////////////////
     public static class RChordEditor extends MusicalEditor {
-    	
-    	
+
+
         @Override
     	public String getPanelClass (){
     		return "projects.music.classes.music.RChord$RChordPanel";
     	}
-        
+
         @Override
     	public String getControlsClass (){
     		return "projects.music.classes.music.RChord$RChordControl";
     	}
-        
+
         @Override
     	public String getTitleBarClass (){
     		return "projects.music.classes.music.RChord$RChordTitle";
     	}
-        
+
     }
-    
+
     //////////////////////PANEL//////////////////////
     public static class RChordPanel extends MusicalPanel {
-    	
+
     	public void KeyHandler(String car){
    		 switch (car) {
 			 case "h" : takeSnapShot ();
@@ -209,70 +221,71 @@ public class RChord extends Parallel_S_MO implements I_RT, I_InRSeqChord {
 			 		   break;
    		 }
     	}
-    	
+
     	@Override
     	public int getZeroPosition () {
     		return 2;
     	}
-    	
 
-    }	
-    
-  
+
+    }
+
+
     //////////////////////CONTROL//////////////////////
     public static class RChordControl extends MusicalControl {
-    	
-    }	
-    
+
+    }
+
     //////////////////////TITLE//////////////////////
     public static class RChordTitle extends MusicalTitle {
-    	
-    }	
-    
+
+    }
+
     //////////////////////DRAWABLE//////////////////////
     public static class RChordDrawable extends ContainerDrawable  implements I_FigureDrawable {
-	
+
 	public String head = MusChars.head_4;
 	String altChar = "";
 	int posY;
-	final int headSizefactor = 4; 
+	final int headSizefactor = 4;
 	final int altSizefactor = 3;
 
 	public  boolean stem_p;
 	boolean tied_p;
 	boolean up_p = true;
-	List<Figure> figures = null;
+	List<I_FigureDrawable> figures = null;
 
 	boolean root_p = false;
 	boolean grace_p = false;
 	List<RChordDrawable> rchordList;
-	
+
 	public int beamsNum = 0;
 	int staffnum = 0;
-	
-	
+
 	public RChordDrawable (RChord theRef, MusicalParams params, int thestaffnum, boolean ed_root) {
 		editor_root = ed_root;
 		InitRChordDrawable(theRef, params, thestaffnum);
 	}
-	
-	public RChordDrawable (RChord theRef, MusicalParams params, int thestaffnum, List<Figure> figure) {
+
+	public RChordDrawable (RChord theRef, MusicalParams params, int thestaffnum, List<I_FigureDrawable> figure) {
 		figures = figure;
-		for (Figure item : figures)
-			item.ref=this;
+		for (I_Drawable item : figures)
+			((Figure) item).ref=this;
 		InitRChordDrawable(theRef, params, thestaffnum);
 	}
-	
+
 	public RChordDrawable (RChord theRef, MusicalParams params, int thestaffnum) {
 		InitRChordDrawable(theRef, params, thestaffnum);
-	}	
+	}
 
 	public void InitRChordDrawable (RChord theRef, MusicalParams theparams, int thestaffnum) {
 		ref = theRef;
 		if (figures == null) {
-			figures = Strie_MO.dur2symbols (((RChord) ref).getQDurs());
-			for (Figure item : figures)
+			figures = new ArrayList<I_FigureDrawable> ();
+			for (Figure item : Strie_MO.dur2symbols (((RChord) ref).getQDurs())) {
+				figures.add(item);
 				item.ref=this;
+			}
 		}
 		params = theparams;
 		staffnum = thestaffnum;
@@ -311,12 +324,12 @@ public class RChord extends Parallel_S_MO implements I_RT, I_InRSeqChord {
 				gnote.setFather(this);
 			}
 			setAltPositions(getInside(), staff, scale);
-			beamsNum = figures.get(0).beamsnum;
+			beamsNum = ((Figure) figures.get(0)).beamsnum;
 			if (editor_root) {
 				makeSpaceObjectList();
 				consTimeSpaceCurve(size, 0, params.zoom.get());
 			}
-		}	
+		}
 
 		public  Comparator<MusicalObject> pitchUp = new Comparator<MusicalObject>() {
 			public int compare(MusicalObject n1, MusicalObject n2) {
@@ -329,8 +342,6 @@ public class RChord extends Parallel_S_MO implements I_RT, I_InRSeqChord {
 				return  ((RNoteDrawable) n2).deltaHead - ((RNoteDrawable) n1).deltaHead;
 			}
 		};
-
-
 
 		//ATTENTION a la taille de lalteration
 		public void setAltPositions (List<I_Drawable> notes, MultipleStaff staff, Scale scale) {
@@ -385,8 +396,8 @@ public class RChord extends Parallel_S_MO implements I_RT, I_InRSeqChord {
 
 	/////////////////////////////////////////////
 	@Override
-	public void drawObject(I_Render g, FXCanvas panel, Rectangle rect, 
-			List<I_Drawable> selection, double packetStart, 
+	public void drawObject(I_Render g, Rectangle rect,
+			List<I_Drawable> selection, double packetStart,
 			double deltax, double deltay) {
 		int size = params.fontsize.get();
 		int numnotes = getInside().size();
@@ -396,8 +407,7 @@ public class RChord extends Parallel_S_MO implements I_RT, I_InRSeqChord {
 		StaffSystem staffsys = params.getStaff();
 		MultipleStaff staff = staffsys.getStaffs().get(staffnum);
 		double stafftoppixels = staff.getTopPixel(size);
-		
-		double xPos = packetStart + deltax;
+		double xPos = getCX() + deltax;
 		double yPos;
 		double strsize = 0;
 		int j =0;
@@ -407,19 +417,15 @@ public class RChord extends Parallel_S_MO implements I_RT, I_InRSeqChord {
 		int startgroup = -1;
 		long numgroup = 0;
 		for (int i = 0; i < len ; i++ ) {
-			fig = figures.get(i);
-			if (i+1 < len) {
+			fig = (Figure) figures.get(i);
+			if (i+1 < len)
 				tiesize = figures.get(i+1).getCX() - fig.getCX() - fig.getStrSize(size);
-			}
-			else {
+			else
 				tiesize = 0;
-			}
-			if (i == 0) {
+			if (i == 0)
 				xPos = getCX() + deltax;
-			}
-			else {
+			else
 				xPos = fig.getCX() + deltax;
-			}
 			j=0;
 			double initpos=Integer.MAX_VALUE;
 			double endpos=0;
@@ -438,82 +444,124 @@ public class RChord extends Parallel_S_MO implements I_RT, I_InRSeqChord {
 					initpos = Math.min(yPos,stafftoppixels + (thenote.domain[0] * dent/2));
 					endpos = Math.max(yPos,stafftoppixels + (thenote.domain[1] * dent/2));
 					thenote.drawDomain (g, staff, size, j, false, fig.beamsnum, fig.points,
-							xPos, numnotes, tiesize, j < len/2);
+							xPos, numnotes, tiesize, j < len/2, fig.head);
 				}
 				else {
 					initpos = Math.min(yPos,initpos);
 					endpos = Math.max(yPos,endpos);
 					thenote.drawNoteHead(g, params, staffsys, size, fig.head, false, fig.beamsnum, fig.points,
-						xPos, yPos, tiesize, j >= len/2, strsize);
+						xPos, yPos, tiesize, j < len/2, strsize);
 				}
 				//thenote.drawRectSelection1(g, new Color(0.2, 0.2, 0.8, 0.3));
 				j++;
 			}
 			collectRectangle();
-			if (fig.stem_p && fig.beamsnum != -1 && stem_p) {
+			drawStem(g, xPos + strsize - 0.5, endpos-size/8, size, fig.beamsnum, strsize, true, endpos - initpos + (size*7)/8);
+			/*if (fig.stem_p && (startgroup == len-1 || startgroup == -1) && stem_p) {
 				if (up_p)
-					drawStem(g, xPos + strsize - 0.5, endpos-size/8, size, fig.beamsnum, strsize, up_p, endpos - initpos + (size*2.5)/6);
-				else drawStem(g, xPos + strsize + 0.5, initpos-size/8, size, fig.beamsnum, strsize, up_p, endpos - initpos + (size*2.5)/6);
-			}
+					drawStem(g, xPos + strsize - 0.5, endpos-size/8, size, fig.beamsnum, strsize, up_p, endpos - initpos + (size*7)/8);
+				else drawStem(g, xPos + strsize + 0.5, initpos-size/8, size, fig.beamsnum, strsize, up_p, endpos - initpos + (size*7)/8);
+			}*/
 			x_0 = Math.min (x_0, x());
 			y_0 = Math.min (y_0, y());
 			setRectangle(x_0, y_0 , x()+w() - x_0, y()+h() - y_0);
 			spaceX = spaceX + (size * 2) + strsize ;
 		}
-		//drawRectSelection1(g, new Color(0.8, 0.2, 0.2, 0.2));
 		if (startgroup != -1)
 			drawUnite(g, params, startgroup, numgroup, deltax, size);
+
+		//drawRectSelection1(g, new Color(0.8, 0.2, 0.2, 0.2));
 	}
 
-
+	//pas de probleme s'il faut le sortir du staff
 	public void drawUnite (I_Render g, MusicalParams params, int start, long num, double deltax, int size) {
-		Figure fig1 = figures.get(start);
-		Figure fig2 = figures.get(figures.size() - 1);
+		Figure fig1 = (Figure) figures.get(start);
+		Figure fig2 = (Figure) figures.get(figures.size() - 1);
+		StaffSystem staffsys = params.getStaff();
+		MultipleStaff staff = staffsys.getStaffs().get(staffnum);
+		double stafftoppixels = staff.getTopPixel(size);
+
+		double yPos = stafftoppixels + (posY * size/8);
+		double barYPos;
+		if (up_p){
+			barYPos = 1000000;
+			for (int i = start; i < figures.size() ; i++ ) {
+				Figure item = (Figure) figures.get(i);
+				barYPos = Math.min(barYPos, yPos - item.getStemSize(item.getBeamsNum(),  size));
+			}
+			} else{
+				barYPos = 0;
+				for (int i = start; i < figures.size() ; i++ ) {
+					Figure item = (Figure) figures.get(i);
+					barYPos = Math.max(barYPos, yPos + item.getStemSize(item.getBeamsNum(), size));
+				}
+			}
+
 		Font thefont = params.getFont("normal2.3Size");
 		String thenum = num+"";
 		double ssize = FX.omStringSize(thenum,  thefont);
+		Font oldfont = FX.omGetFont(g);
 		FX.omSetFont(g, thefont);
 		if (up_p) {
-			double y0 = y() - size/4;
+			double y0 = barYPos - size/3;
 			double x0 = fig1.getCX() + deltax;
 			double x1 = fig2.getCX()+deltax + fig2.getStrSize(size) +size/4;
-			FX.omDrawLine(g, x0, y0, x1 , y0);
-			FX.omDrawLine(g, x0, y0, x0 , y0 + size/4); 
-			FX.omDrawLine(g, x1, y0, x1 , y0 + size/4); 
-			FX.omDrawString(g, x0 + (x1-x0-ssize)/2, y0 -size/4, num+""); 
+			FX.omDrawLine(g, x0, y0, Math.max(x0+ 4, x1 - ssize + 1) , y0);
+			FX.omDrawLine(g, x0, y0, x0 , y0 + size/4);
+			FX.omDrawString(g, Math.max(x0+ 4, x1 - ssize + 1), y0 + size/8, num+"");
 		}
 		else {
-			double y0 = y() + h() + size/4;
+			double y0 = barYPos + size/3;
 			double x0 = fig1.getCX() + deltax - size/4;
 			double x1 = fig2.getCX()+deltax + fig2.getStrSize(size) ;
-			FX.omDrawLine(g, x0, y0, x1 , y0);
-			FX.omDrawLine(g, x0, y0, x0 , y0 - size/4); 
-			FX.omDrawLine(g, x1, y0, x1 , y0 - size/4); 
-			FX.omDrawString(g, x0 + (x1-x0-ssize)/2, y0 + size/2, num+""); 
-		} 
+			FX.omDrawLine(g, x0, y0, Math.max(x0+ 4, x1 - ssize + 1) , y0);
+			FX.omDrawLine(g, x0, y0, x0 , y0 - size/4);
+			FX.omDrawString(g, Math.max(x0+ 4, x1 - ssize + 1), y0 + size/6, num+"");
+		}
+		FX.omSetFont(g, oldfont);
+		if (start != figures.size() - 1) {
+			for (int i = start; i < figures.size() ; i++ )
+				drawSimpleStem(g, ((Figure) figures.get(i)), stafftoppixels, deltax, size, up_p, barYPos);
+			drawBeams(g, up_p, size, deltax, figures, barYPos, 1.0 + size * 3/16);
+		}
 	}
-	
-	public void groupDrawStems(I_Render g, boolean up_p, double stemsize, double deltax) {
+
+	public void drawSimpleStem (I_Render g, Figure fig, double stafftoppixels,double deltax,
+			int size, boolean up_p, double ybarpos) {
+
+		double strsize = fig.getStrSize(size);
+		double y = stafftoppixels + (posY * size/8);
+		if (up_p) {
+			double x = fig.getCX() + deltax + strsize - 0.5;
+			FX.omDrawLine(g, x, y, x, ybarpos);
+		}
+		else {
+			double x = fig.getCX() + deltax +  0.5;
+			FX.omDrawLine(g, x, y, x, ybarpos);
+		}
+	}
+
+	public void groupDrawStems(I_Render g, boolean up_p, double deltax, double ybarpos) {
 		int size = params.fontsize.get();
 		StaffSystem staffsys = params.getStaff();
 		MultipleStaff staff = staffsys.getStaffs().get(staffnum);
 		double stafftoppixels = staff.getTopPixel(size);
-		double ystart;
+		double ystart ;
 		double xstart;
 		RNoteDrawable note;
-		double strsize = figures.get(0).getStrSize(size);
+		double strsize = ((Figure) figures.get(0)).getStrSize(size);
 		List<I_Drawable> inside = getInside();
 		if (up_p) {
 			note = (RNoteDrawable) inside.get(0);
 			ystart = stafftoppixels + (note.posY * size/8);
 			xstart = centerX + deltax + strsize - 0.5;
-			FX.omDrawLine(g, xstart, ystart, xstart, ystart - stemsize);
+			FX.omDrawLine(g, xstart, ystart, xstart, ybarpos);
 		}
 		else {
 			note = (RNoteDrawable) inside.get(inside.size() - 1);
-			ystart = note.y();
-			xstart = centerX + deltax;
-			FX.omDrawLine(g, xstart, ystart, xstart, ystart + stemsize);
+			ystart = stafftoppixels + (note.posY * size/8);;
+			xstart = centerX + deltax + 0.5;
+			FX.omDrawLine(g, xstart, ystart, xstart, ybarpos);
 		}
 	}
 
@@ -535,45 +583,72 @@ public I_Drawable getClickedObject(double x, double y) {
 
 	///////////Spacing
 	@Override
-	public double computeCX(SpacedPacket pack, int size) {
-		Figure fig = figures.get(0);
+	public void computeCX(SpacedPacket pack, int size) {
+		Figure fig = (Figure) figures.get(0);
 		double x0 = pack.start;
-		double w0 = 0;
-		double w1 = 0;
+		double deltal = 0;
+		double deltar = 0;
 		double strsize = fig.getStrSize(size);
 		for (I_Drawable note : getInside()) {
 			RNoteDrawable thenote = (RNoteDrawable) note;
-			w0 = Math.max( w0 , (thenote.deltaAlt * strsize * 3) / 10 );
-			w1 = Math.max( w1 ,  (thenote.deltaHead * strsize));
+			deltal = Math.max( deltal , (thenote.deltaAlt * strsize * 3) / 10 );
+			deltar = Math.max( deltar ,  (thenote.deltaHead * strsize));
 		}
-		setCX(x0 + w0);
-		setRectangle(x0, y(), w0 + w1 - x0 + strsize, h());	
-		return getCX();
-	} 
-	
-	public void collectTemporalObjectsS(List<SpacedPacket> timelist) {
+		pack.updatePacket(0, 0, deltal, deltar+ strsize );
+		setRectangle(x0, y(), deltal + deltar - x0 + strsize, h());
+	}
+
+	@Override
+	public void collectTemporalObjects(List<SpacedPacket> timelist) {
 		double tempo = ((RChord) ref).getTempo();
-		timelist.add(new SpacedPacket(this, this.ref.getOnsetMS()));
-		long onset = ref.getOnsetMS() + figures.get(0).getDurMS(tempo);
+		timelist.add(new SpacedPacket(this, this.ref.getOnsetMS(), true));
+		long onset = ref.getOnsetMS() + ((Figure) figures.get(0)).getDurMS(tempo);
 		for (int i=1; i < figures.size(); i++){
-			timelist.add(new SpacedPacket(figures.get(i),onset));
-			onset = onset + figures.get(i).getDurMS(tempo);
+			timelist.add(new SpacedPacket(figures.get(i),onset, true));
+			onset = onset + ( (Figure) figures.get(i)).getDurMS(tempo);
 		}
 	}
+
 
 	//////////////////////////////////////////////////
 	////////////I_FigureDrawable
 	@Override
 	public int getBeamsNum() {
-		return beamsNum;
+		return ((Figure) figures.get(0)).beamsnum;
 	}
 
 	@Override
-	public double getHeadSize() {
-		// TODO Auto-generated method stub
-		return 0;
+	public double getHeadSize(int size) {
+		return ((Figure)figures.get(0)).getStrSize(size);
 	}
-}
+
+	@Override
+	public double getUpYpos(int size) {
+		double rep = 0;
+		StaffSystem staffsys = params.getStaff();
+		MultipleStaff staff = staffsys.getStaffs().get(staffnum);
+		double stafftoppixels = staff.getTopPixel(size);
+		for (I_Drawable note : getInside()) {
+			RNoteDrawable thenote = (RNoteDrawable) note;
+			rep = Math.max( rep , stafftoppixels + (thenote.posY * size/8));
+		}
+		return rep;
+	}
+
+	@Override
+	public double getDwnYpos(int size) {
+		double rep = 1000000;
+		StaffSystem staffsys = params.getStaff();
+		MultipleStaff staff = staffsys.getStaffs().get(staffnum);
+		double stafftoppixels = staff.getTopPixel(size);
+		for (I_Drawable note : getInside()) {
+			RNoteDrawable thenote = (RNoteDrawable) note;
+			rep = Math.min( rep , stafftoppixels + (thenote.posY * size/8));
+		}
+		return rep;
+	}
+   }
+  ////////////// END DRAWABLE//////////////
 
 
 }

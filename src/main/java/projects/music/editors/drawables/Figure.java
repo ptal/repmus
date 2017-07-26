@@ -1,10 +1,9 @@
 package projects.music.editors.drawables;
 
-import gui.FXCanvas;
 import gui.renders.I_Render;
 
 import java.util.List;
-
+import gui.CanvasFX;
 import com.sun.javafx.geom.Rectangle;
 
 import kernel.tools.Fraction;
@@ -13,16 +12,14 @@ import projects.music.classes.interfaces.I_MusicalObject;
 import projects.music.classes.music.RChord.RChordDrawable;
 import projects.music.classes.music.RNote.RNoteDrawable;
 import projects.music.editors.MusChars;
-import projects.music.editors.MusicalParams;
 import projects.music.editors.SpacedPacket;
-import projects.music.editors.StaffSystem;
 
-public class Figure implements I_Drawable{
+public class Figure implements I_FigureDrawable{
 	public boolean big_p; //plus grand que 1
 
 	public Fraction realDur; //subdivision ou multiplication
 	public long longTimes;
-
+	
 	public boolean rest_p;
 	public String head;
 	public int points;
@@ -30,16 +27,16 @@ public class Figure implements I_Drawable{
 	public boolean stem_p = false;
 	public long denom = 1; //a mettre sur le group
 	public boolean inGroup = false;
-
+	
 	double strSize = 7.176000118255615;
 	double spaceRelPosX = 0;
-
+	
 	public SimpleDrawable ref = null;
 
 	public Figure (long thedur, boolean big, boolean rest) {
 		big_p = big;
 		rest_p = rest;
-		realDur = new Fraction (thedur);
+		realDur = new Fraction (thedur); 
 		setHeadAndPoints(thedur, 1);
 	}
 
@@ -47,26 +44,36 @@ public class Figure implements I_Drawable{
 		big_p = big;
 		rest_p = rest;
 		denom = thedenom;
-		realDur = new Fraction (thedur, thedenom);
+		realDur = new Fraction (thedur, thedenom); 
 		long symb_denom = Strie_MO.findBeatSymbol(denom);
 		setHeadAndPoints(thedur, symb_denom);
 	}
-
+	
 	public double getStrSize (int size) {
 		return  strSize * (size/24) ;
 	}
+	
 
-	public boolean hasDenom () {
-		Fraction frac = new Fraction (1, denom);
-		// System.out.println ("test " + denom + " " +  frac.isBinaire() );
-		return ! (denom == 1 || frac.isBinaire()) ;
+	@Override
+	public int getBeamsNum() {
+		return beamsnum;
 	}
 
+	@Override
+	public double getHeadSize(int size) {
+		return strSize * (size/24) ;
+	}
+	
+	public boolean hasDenom () {
+		Fraction frac = new Fraction (1, denom);
+		return ! (denom == 1 || frac.isBinaire()) ;
+	}
+	
 
 	public long getDurMS (double tempo) {
 		return Strie_MO.n2ms(realDur, tempo);
 	}
-
+		
 	public String toString ( ){
 		return "head " + head +" big_p " + big_p + " denom : " + denom + " beamsnum : " + beamsnum + " points : " + points + "\n";
 	}
@@ -124,34 +131,37 @@ public class Figure implements I_Drawable{
 			else if (val.equals(Fraction.f1_128)) {strSize=7.176000118255615; stem_p = true; beamsnum = 5; return MusChars.head_1_4;}
 			else {strSize=7.176000118255615; stem_p = true; beamsnum = 6; return MusChars.head_1_4;}
 		}
-
+	
 	@Override
-	public double computeCX(SpacedPacket pack, int size) {
+	public void computeCX(SpacedPacket pack, int size) {
 		if (ref instanceof RNoteDrawable) {
 			RNoteDrawable thenote = (RNoteDrawable) ref;
 			if (thenote.domain == null) {
 				double x0 = pack.start;
 				double strsize = getStrSize(size);
-				double w0 = (thenote.deltaAlt * strsize * 3) / 10 + (thenote.deltaHead * strsize);
-				setCX(x0 + w0);
-				thenote.setRectangle(thenote.x(), thenote.y(), w0 - x0 + strsize, thenote.h());
+
+				double deltal = (thenote.deltaAlt * strsize * 3) / 10;
+				double deltar = strsize + (thenote.deltaHead * strsize);
+
+				pack.updatePacket(0, 0, deltal, deltar);
+				thenote.setRectangle(thenote.x(), thenote.y(), deltal+deltar - x0 + strsize, thenote.h());
 			}
 		}
 		else if (ref instanceof RChordDrawable) {
 			RChordDrawable thechord = (RChordDrawable) ref;
 			double x0 = pack.start;
-			double w0 = 0;
-			double w1 = 0;
+			double deltal = 0;
+			double deltar = 0;
 			double strsize = getStrSize(size);
 			for (I_Drawable note : thechord.getInside()) {
 				RNoteDrawable thenote = (RNoteDrawable) note;
-				w0 = Math.max( w0 , (thenote.deltaAlt * strsize * 3) / 10 );
-				w1 = Math.max( w1 ,  (thenote.deltaHead * strsize));
+				deltal = Math.max( deltal , (thenote.deltaAlt * strsize * 3) / 10 );
+				deltar = Math.max( deltar ,  (thenote.deltaHead * strsize));
 			}
-			setCX(x0 + w0);
-			thechord.setRectangle(thechord.x(), thechord.y(), w0 + w1 - x0 + strsize, thechord.h());
+			pack.updatePacket(0, 0, deltal, deltar + strsize);
+			thechord.setRectangle(thechord.x(), thechord.y(), deltal + deltar - x0 + strsize, thechord.h());
 		}
-		return getCX();
+		
 	}
 
 	@Override
@@ -161,17 +171,12 @@ public class Figure implements I_Drawable{
 
 	@Override
 	public void setCX(double cx) {
-		spaceRelPosX = cx;
+		spaceRelPosX = cx;	
 	}
 
-	@Override
-	public void translateCX(double max, SpacedPacket pack) {
-		// TODO Auto-generated method stub
-
-	}
 
 	@Override
-	public void drawObject(I_Render g, FXCanvas panel, Rectangle rect,
+	public void drawObject(I_Render g,  Rectangle rect,
 			List<I_Drawable> selection, double x0, double deltax, double deltay) {
 		// TODO Auto-generated method stub
 	}
@@ -179,7 +184,7 @@ public class Figure implements I_Drawable{
 	@Override
 	public void consTimeSpaceCurve(int size, double x, int zoom) {
 		// TODO Auto-generated method stub
-
+		
 	}
 
 	@Override
@@ -189,10 +194,10 @@ public class Figure implements I_Drawable{
 	}
 
 	@Override
-	public void drawContainersObjects(I_Render g, FXCanvas panel,
+	public void drawContainersObjects(I_Render g,
 			Rectangle rect, List<I_Drawable> selection, double deltax) {
 		// TODO Auto-generated method stub
-
+		
 	}
 
 	@Override
@@ -228,7 +233,7 @@ public class Figure implements I_Drawable{
 	@Override
 	public void setFather(ContainerDrawable thefather) {
 		// TODO Auto-generated method stub
-
+		
 	}
 
 	@Override
@@ -238,15 +243,38 @@ public class Figure implements I_Drawable{
 	}
 
 	@Override
-	public void collectTemporalObjectsS(List<SpacedPacket> timelist) {
-		// TODO Auto-generated method stub
+	public void collectTemporalObjects(List<SpacedPacket> timelist) {}
 
+	@Override
+	public boolean firstOfChildren() {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 	@Override
-	public void collectTemporalObjectsL(List<SpacedPacket> timelist) {
+	public boolean lastOfChildren() {
 		// TODO Auto-generated method stub
+		return false;
+	}
+	
+	@Override
+	public double getStemSize (int beamsnumber, int size) {
+		double stemsize = (size/8) * 7;
+		if (beamsnumber == 0)
+			return stemsize;
+		else return stemsize + (beamsnumber*size/4);
+	}
 
+	@Override
+	public double getUpYpos(int size) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public double getDwnYpos(int size) {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 
 }

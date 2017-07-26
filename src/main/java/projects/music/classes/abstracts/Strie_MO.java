@@ -16,13 +16,14 @@ import kernel.tools.ST;
 import kernel.tools.generated.grammar1Lexer;
 import kernel.tools.generated.grammar1Parser;
 import projects.music.classes.interfaces.I_RT;
+import projects.music.classes.music.Measure;
 import projects.music.editors.MusChars;
 import projects.music.editors.drawables.Figure;
 
 public class Strie_MO extends MusicalObject implements I_RT {
 
 	double tempo = 60;
-	Fraction qdur = new Fraction (1);
+	public Fraction qdur = new Fraction (1);
 	Fraction qoffset = new Fraction (0);
 
 	public Fraction rtdur = new Fraction(1);
@@ -80,12 +81,28 @@ public class Strie_MO extends MusicalObject implements I_RT {
 		if (getFather() == null)
 			return qoffset ;
 		else
-			return Fraction.addition(qoffset , ((Strie_MO) getFather()).getOnsetTotal() );
+			if  ( ! (getFather() instanceof Strie_MO))
+				return new Fraction (0);
+			else return Fraction.addition(qoffset , ((Strie_MO) getFather()).getOnsetTotal() );
+	}
+
+	public MusicalObject getBFFather () {
+		if (getFather() == null)
+			return null ;
+		else
+			if  ( ! (getFather() instanceof Strie_MO))
+				return this ;
+			else return ((Strie_MO) getFather()).getBFFather();
 	}
 
 	@Override
 	public long getOnsetMS () {
-		return (long) n2ms(getOnsetTotal(), tempo);
+		MusicalObject bf = getBFFather();
+		if (bf == null)
+			return (long) n2ms(getOnsetTotal(), tempo);
+		else {
+			return (long) n2ms(getOnsetTotal(), tempo) + bf.getOffset();
+		}
 	}
 
 	///////////////////////////////////TOOLS////////////////////////////////

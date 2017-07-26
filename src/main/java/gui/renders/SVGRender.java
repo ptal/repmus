@@ -1,7 +1,7 @@
 package gui.renders;
 
+import gui.CanvasFX;
 import gui.FX;
-import gui.FXCanvas;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -10,9 +10,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.net.URL;
 
-import resources.Loader;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -28,7 +26,7 @@ Color colorfill = null;
 Font font = FX.default_font1;
 
 
-public SVGRender (FXCanvas view){
+public SVGRender (CanvasFX view){
 	try {
 		File file = new File("example.svg");
 		svgoutput = new BufferedWriter(new FileWriter(file));

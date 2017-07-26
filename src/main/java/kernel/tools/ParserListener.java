@@ -28,6 +28,9 @@ import kernel.tools.generated.grammar1Parser.ConstStringContext;
 import kernel.tools.generated.grammar1Parser.ConstTrueContext;
 import kernel.tools.generated.grammar1Parser.DurIntegerContext;
 import kernel.tools.generated.grammar1Parser.ExprContext;
+import kernel.tools.generated.grammar1Parser.ExtraGraceContext;
+import kernel.tools.generated.grammar1Parser.ExtraListContext;
+import kernel.tools.generated.grammar1Parser.ExtraTextContext;
 import kernel.tools.generated.grammar1Parser.LineContext;
 import kernel.tools.generated.grammar1Parser.ListContext;
 import kernel.tools.generated.grammar1Parser.NegatifFloatContext;
@@ -43,6 +46,9 @@ import kernel.tools.generated.grammar1Parser.StaffGroupContext;
 import kernel.tools.generated.grammar1Parser.StaffLinesContext;
 import kernel.tools.generated.grammar1Parser.StaffSimpleContext;
 import kernel.tools.generated.grammar1Parser.SystemContext;
+import projects.music.classes.abstracts.extras.Extra;
+import projects.music.classes.abstracts.extras.Extra.ExtraText;
+import projects.music.classes.abstracts.extras.I_Extra;
 
 
 public class ParserListener implements grammar1Listener{
@@ -125,6 +131,8 @@ public class ParserListener implements grammar1Listener{
 			for (Object e : e1) {
 				if (clazz.getName().equals("java.lang.Long"))
 					rep.add((K) new Long ((int) e));
+				else if (clazz.getName().equals("java.lang.Integer"))
+					rep.add((K) new Integer ((int) e));
 				else if (clazz.getName().equals("projects.music.classes.abstracts.RTree"))
 					rep.add((K) Parser.RTreefromLlist((List<Object>) e, true ));
 				else
@@ -261,7 +269,13 @@ public class ParserListener implements grammar1Listener{
 	public void enterPRTInteger(PRTIntegerContext ctx) {}
 	@Override
 	public void exitPRTInteger(PRTIntegerContext ctx) {
-		ctx.rep = new RTree(new Long((int) ctx.intConst.rep), false);
+		RTree therep = new RTree(new Long((int) ctx.intConst.rep), false);
+		List<I_Extra> extralist = new ArrayList<I_Extra>();
+		for (grammar1Parser.ExtraRContext e : ctx.extras) {
+			extralist.add((I_Extra) e.rep);
+		}
+		therep.extras= extralist;
+		ctx.rep = therep;
 	}
 	
 	@Override
@@ -350,5 +364,41 @@ public class ParserListener implements grammar1Listener{
 	@Override
 	public void exitStaffSimple(StaffSimpleContext ctx) {
 		ctx.rep = new MultipleStaff (ctx.simple.getText());
+	}
+
+	@Override
+	public void enterExtraText(ExtraTextContext ctx) {}
+	@Override
+	public void exitExtraText(ExtraTextContext ctx) {
+		boolean dwn = (ctx.up != null);
+		int dx,dy;
+		if (ctx.dy != null)
+			dy = Integer.parseInt(ctx.dy.getText());
+		else
+			dy = 0;
+		if (ctx.dx != null)
+			dx = Integer.parseInt(ctx.dx.getText());
+		else
+			dx = 0;
+		ctx.rep = new ExtraText (ctx.text.getText(), dwn,dx, dy);
+	}
+
+	@Override
+	public void enterExtraGrace(ExtraGraceContext ctx) {}
+	@Override
+	public void exitExtraGrace(ExtraGraceContext ctx) {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public void enterExtraList(ExtraListContext ctx) {}
+
+	@Override
+	public void exitExtraList(ExtraListContext ctx) {
+		List<I_Extra> extralist = new ArrayList<I_Extra>();
+		for (grammar1Parser.ExtraRContext e : ctx.extras) {
+			extralist.add((I_Extra) e.rep);
+		}
+		ctx.rep = extralist;
 	}
 }

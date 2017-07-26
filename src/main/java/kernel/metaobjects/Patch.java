@@ -61,8 +61,8 @@ public class Patch extends BasicMetaObject implements I_OMObject, Serializable {
 			e.printStackTrace();
 		}
 		if (box != null) {
-     	boxes.add (box);
-     	addGraphicBox (box);
+			boxes.add (box);
+			addGraphicBox (box);
       }
  	}
 
@@ -94,7 +94,7 @@ public class Patch extends BasicMetaObject implements I_OMObject, Serializable {
 	         	OutputBoxFrame outball = ((BoxFrame)framesource).outputballs.get(connection.outnum);
 
 	     		PatchPanel patchpanel = ((PatchPanel) omGetEditor().getPanel());
-	     		((Pane) patchpanel.omGetDelegate()).getChildren().add(new ConnectionLine (inball, outball));
+	     		((Pane) patchpanel.delegate).getChildren().add(new ConnectionLine (inball, outball));
 	     }
 	 }
 
@@ -273,7 +273,6 @@ public class Patch extends BasicMetaObject implements I_OMObject, Serializable {
 
 	    	public void KeyHandler(String car){
 	    		List<I_SimpleFrame> selection = getSelectedBoxesFrame ();
-	    		System.out.println ("key " + car);
 	    		switch (car) {
 				 case "del" : System.out.println ("delete"); break;
 				 case "m": for (I_SimpleFrame boxframe : selection)
@@ -292,7 +291,8 @@ public class Patch extends BasicMetaObject implements I_OMObject, Serializable {
 				 case "right": for (I_SimpleFrame boxframe : selection)
 				 		((BoxFrame) boxframe).moveFrameDelta(3);
 			 		    break;
-				 case "v": for (I_SimpleFrame boxframe : selection)
+				 case "v":
+					 for (I_SimpleFrame boxframe : selection)
 				 		((BoxFrame) boxframe).evalBox();
 			 		    break;
 			 }

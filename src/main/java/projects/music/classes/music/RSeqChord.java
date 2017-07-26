@@ -51,15 +51,16 @@ public class RSeqChord extends Sequence_S_MO implements I_RT {
 	
 	public RSeqChord () {
 		List<I_RT> objs = new ArrayList<I_RT>();
-		objs.add(new RChord());
 		objs.add(new Rest());
+		objs.add(new RChord());
 		objs.add(new Group());
+		objs.add(new Rest());
 		fillSeq(objs);
 	}
 	
 //////////////////////////////////////////////////
-public I_Drawable makeDrawable (MusicalParams params) {
-return new RSeqChordDrawable (this, params, 0, true);
+public I_Drawable makeDrawable (MusicalParams params, boolean root) {
+return new RSeqChordDrawable (this, params, 0, root);
 } 
 
 

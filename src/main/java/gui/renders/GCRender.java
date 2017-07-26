@@ -1,6 +1,6 @@
 package gui.renders;
 
-import gui.FXCanvas;
+import gui.CanvasFX;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
@@ -12,7 +12,7 @@ public class GCRender implements I_Render {
 
 	GraphicsContext gc = null;
 
-	public GCRender (FXCanvas view) {
+	public GCRender (CanvasFX view) {
 		gc = view.omGetGraphicContext();
 	}
 

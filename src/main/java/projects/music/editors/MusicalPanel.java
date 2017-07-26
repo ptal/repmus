@@ -14,6 +14,7 @@ import java.util.List;
 import com.sun.javafx.geom.Rectangle;
 
 import projects.music.classes.abstracts.MusicalObject;
+import projects.music.classes.interfaces.I_MusicalObject;
 import projects.music.editors.StaffSystem.MultipleStaff;
 import projects.music.editors.drawables.I_Drawable;
 import javafx.geometry.Point2D;
@@ -24,6 +25,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.effect.Bloom;
 import javafx.scene.effect.BoxBlur;
 import javafx.scene.effect.DropShadow;
+import javafx.scene.effect.InnerShadow;
 import javafx.scene.effect.Lighting;
 import javafx.scene.effect.Reflection;
 import javafx.scene.paint.Color;
@@ -31,20 +33,22 @@ import javafx.scene.text.Font;
 import javafx.scene.effect.Light.Distant;
 import javafx.scene.image.Image;
 import kernel.frames.views.PanelCanvas;
+import projects.music.midi.Player;
 
 public class MusicalPanel extends PanelCanvas implements I_MusicalPanel{
-	
+
 	public int size;
 	public StaffSystem staffSystem;
 	public Scale scale;
 	public Font theFont;
 	List<I_Drawable> selection = new ArrayList<I_Drawable>();
 	public I_Drawable graphObj;
-	
+
 	public MusicalPanel () {
-		super();
+		super(500, 500);
 	}
-	
+
+	@Override
 	public void init () {
 		super.init();
 		MusicalEditor ed = (MusicalEditor) getEditor();
@@ -55,29 +59,29 @@ public class MusicalPanel extends PanelCanvas implements I_MusicalPanel{
 		scale = Scale.getScale (params.scale.get());
 		updatePanel(true);
 	}
-	
+
 	public String [] getSlotList () {
 		String [] rep = {"midic","channel","dur","dyn","port"};
 		return rep;
 	}
-			 	
+
 	@Override
 	public void omSetViewSize(double w, double h) {
 		super.omSetViewSize(w,h);
 		updatePanel(false);
 	}
 
-	
+
 	public void setGraphObject (I_Drawable Obj) {
 		graphObj  = Obj;
 	}
-	
+
 	public I_Drawable getGraphObject () {
-		return graphObj ; 
+		return graphObj ;
 	}
-	
+
 	public StaffSystem  getStaffSystem () {
-		return staffSystem ; 
+		return staffSystem ;
 	}
 
 	@Override
@@ -86,23 +90,25 @@ public class MusicalPanel extends PanelCanvas implements I_MusicalPanel{
 		if (ed != null) {
 			MusicalParams params = (MusicalParams) ed.getParams();
 			MusicalObject object = (MusicalObject) ed.getObject();
-			if (changedObject_p){
-				setGraphObject(object.makeDrawable(params));
-		}
-		GCRender gc = getGCRender();
-        omViewDrawContents(gc);
+			if (changedObject_p)
+				setGraphObject(object.makeDrawable(params, true));
+			GCRender gc = getGCRender();
+			omViewDrawContents(gc);
+			double w = delegate.w();
+	        double h = delegate.h();
+	        FX.omSetColorStroke(gc, Color.BLUE);
+	        FX.omDrawRect(gc, 0, 0, w, h);
 		}
 	}
 
-	
 	public int getZeroPosition  () {
 		return 1;
 	}
-	
+
 	public boolean showTempo_p () {
 		return false;
 	}
-	
+
 	public void omViewDrawContents (I_Render g) {
 		super.omViewDrawContents(g);
 		MusicalEditor ed = (MusicalEditor) getEditor();
@@ -114,8 +120,9 @@ public class MusicalPanel extends PanelCanvas implements I_MusicalPanel{
 			viewDrawLinear(g);
 			}
 		}
-	
+
 	public void viewDrawLinear (I_Render g) {
+		double scrollx = getHvalue();
 		MusicalEditor ed = (MusicalEditor) getEditor();
 		MusicalParams params = (MusicalParams) ed.getParams();
 		int size = params.fontsize.get();
@@ -124,9 +131,9 @@ public class MusicalPanel extends PanelCanvas implements I_MusicalPanel{
 		FX.omEraseRectContent(g, 0,0, w(), h());
 		drawLineSystem(g, params);
 		Rectangle rect = new Rectangle (0, 0 ,(int) w() ,(int) h());
-		graphObj.drawObject (g,  this, rect, selection, 0 , deltax, deltay);
+		graphObj.drawObject (g, rect, selection, 0 , deltax - scrollx, deltay);
 	}
-	
+
 	public void drawLineSystem (I_Render g, MusicalParams params) {
 		boolean tempo = showTempo_p ();
 		int size = params.fontsize.get();
@@ -136,9 +143,9 @@ public class MusicalPanel extends PanelCanvas implements I_MusicalPanel{
 		g.omSetFont(oldFont);
 	}
 
-	
+
 	//////////////////MenuContext////////////////////
-	@Override
+	//@Override
 	public List<MenuItem> getTheContextMenu (){
 		List<MenuItem> rep = new ArrayList<MenuItem>();
 		OmMenuItem [] modelist = {new OmMenuItem("Normal", e-> {changeScoreMode (0);} ),
@@ -148,20 +155,20 @@ public class MusicalPanel extends PanelCanvas implements I_MusicalPanel{
 		rep.add ((MenuItem) new OmMenuItem ("Eval", e-> {changeScoreMode (0);}));
 		return rep;
 	}
-	
+
 	public void changeScoreMode (int mode){
 	}
-	
+
 
 	/*(defun simple-menu-context (object)
-			  (remove nil (append 
-			               (list  
-			                (list 
-			               
+			  (remove nil (append
+			               (list
+			                (list
+
 			                (if (analysis-mode? (panel object))
 			                    (analysis-menu-items object)
-			                  (list 
-			                   (list 
+			                  (list
+			                   (list
 			                    (om-new-leafmenu "Set Score Margins"
 			                                     #'(lambda () (editor-page-setup (panel object)))))
 			                   (om-new-leafmenu "Eval"
@@ -169,34 +176,41 @@ public class MusicalPanel extends PanelCanvas implements I_MusicalPanel{
 
 
 			(defmethod om-get-menu-context ((self scorepanel))
-			  (let ((selection (get-click-in-obj self (graphic-obj self) 
+			  (let ((selection (get-click-in-obj self (graphic-obj self)
 			                                 'contex ;(grap-class-from-type (obj-mode self))
 			                                 (om-mouse-position self))))
 			    (if selection
 			        (om-get-menu-context selection)
 			      (om-get-menu-context (editor self)))))
-			      
+
 			      */
-	
+
 	////////////////////HANDLE KEY EVENT/////////////
 	public void KeyHandler (String car) {
+
 			 switch (car) {
-				 case "space" : System.out.println ("(editor-play/stop (editor self)))"); break;
+				 case "space" : Player.play((I_MusicalObject) ((MusicalEditor) getEditor()).getObject()); break;
 				 case "c": delegate.setScaleX( delegate.getScaleX() * 1.1); break;
 				 case "n" : System.out.println ("(set-name-to-mus-obj self))"); break;
-				 case "h" : System.out.println ("show-help-window"); break;
+				 case "h" : takeSnapShot ();  break;
 				 case "t" : System.out.println ("score-set-tonalite"); break;
 				 case "T" : System.out.println ("score-remove-tonalite"); break;
 				 case "tab" : System.out.println ("change-obj-mode "); break;
-				 case "up" :  moveSelection(0); break;
-				 case "down" : moveSelection(1); break;
-				 
+				 case "up" :  delegate.setScaleX( delegate.getScaleX() * 1.1);
+				 			  delegate.setScaleY( delegate.getScaleY() * 1.1);break;
+				 	//moveSelection(0); break;
+				 case "down" : delegate.setScaleX( delegate.getScaleX() * 0.9);
+				 			   delegate.setScaleY( delegate.getScaleY() * 0.9); break;
+				 	//moveSelection(1); break;
+				 case "left" :  ((MusicalEditor) getEditor()).changeZoom(+5); break;
+				 case "right" : ((MusicalEditor) getEditor()).changeZoom(-5);  break;
+
 			 }
 	}
 	/*
-				 		
+
 			           (#\s (create-editor-scale (editor self)))
-			         
+
 			           (otherwise (if (selection? self)
 			                          (if (char-is-digit char) (do-subdivise self char)
 			                            (case char
@@ -211,7 +225,7 @@ public class MusicalPanel extends PanelCanvas implements I_MusicalPanel{
 			                                                    (change-dur self 1))
 			                                                   (t (change-x self 1))))
 			                              (#\C  (set-color-to-mus-obj self))
-			                           
+
 			                              (:om-key-delete (delete-selection self))
 			                              (:om-key-esc (toggle-selection self))
 			                              (#\+ (do-union self))
@@ -222,7 +236,7 @@ public class MusicalPanel extends PanelCanvas implements I_MusicalPanel{
 			                              (#\/ (untie-selection self))
 			                              (#\o (open-internal-editor self))
 			                              ;; (#\/ (subdivise-edit-cursor self)) ;a faire
-			                           
+
 			                              (otherwise (om-beep))))
 			                        (case char
 			                          (:om-key-esc (reset-cursor self)))
@@ -237,27 +251,27 @@ public class MusicalPanel extends PanelCanvas implements I_MusicalPanel{
 ///////////////////////////////////////////////////////
 /////////////////////////////Click/////////////////////
 ///////////////////////////////////////////////////////
-	
+
 	public void offStaffSelection () {
 		staffSystem.offSelected ();
 	}
-	
+
 	public void selectStaffWithShift (MultipleStaff staffSelection) {
 		staffSelection.setSelected(! staffSelection.getSelected());
         updatePanel(false);
 	}
-	
+
 	public void offObjSelection () {
 		selection = new ArrayList<I_Drawable>();
 	}
-	
+
 	public void selectObjWithShift (I_Drawable obj) {
 		selection.add(obj);
         updatePanel(false);
 	}
-	
-	
-		
+
+
+
 	//		  (let ((selected-things (get-graph-selection? self (grap-class-from-type (obj-mode self)))))
 
 /*	@Override
@@ -294,19 +308,19 @@ public class MusicalPanel extends PanelCanvas implements I_MusicalPanel{
 				ed.setMouvableObj(new MouvableRectangle () );
 				System.out.println("-----> system " + staffSelection);
 			}
-		}	
+		}
 	 }
 
-	
+
 	////////////////////ACTIONS//////////////
 	@Override
 	public void addNewObject(double y) {
 		// TODO Auto-generated method stub
-		
+
 	}
-	
+
 		*/
-	
+
 	public void moveSelection (int dir) {
 		int delta = 0;
 		if (FX.getShiftKey())
@@ -329,5 +343,5 @@ public class MusicalPanel extends PanelCanvas implements I_MusicalPanel{
 		// TODO Auto-generated method stub
 	}
 
-			 
+
 }

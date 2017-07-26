@@ -18,7 +18,7 @@ avec cllic droit sur antlr4 -> Build Path -> Use as Source Folder
 
 grammar grammar1;
 
- // Expressions
+// Expressions
 expr returns [Object rep]
 	: classname=IDENT '(' args+=expr? (',' args+=expr)* ')' # Builder
     | '(' elems+=expr* ')' # List
@@ -28,6 +28,7 @@ expr returns [Object rep]
     | floatConst=floatR # ConstFloat
     | stringConst=STRING # ConstString
     | ratio=ratioR # ConstRatio
+    | '[' extras+=extraR ']' # ExtraList
     ;
 //Rhythmic tree
 rt returns [Object rep]
@@ -39,9 +40,15 @@ rt returns [Object rep]
 prt returns [Object rep]
 
  // PRT
-    : '(' propor=integerR '(' propo+=prt* ')' ')' # PRTree
-	| intConst=integerR # PRTInteger
-    | floatConst=floatR # PRTFloat
+    : '(' propor=integerR '(' propo+=prt* ')' ')' ('[' extras+=extraR ']')* # PRTree
+	| intConst=integerR ('[' extras+=extraR ']')*# PRTInteger
+    | floatConst=floatR ('[' extras+=extraR ']')*# PRTFloat
+    ;
+
+extraR returns [Object rep]
+// extras
+    : '-grace' rythm=prt '(' midic+=integerR+ ')' after='-a'?# ExtraGrace
+    | '-text' text=STRING  up='-up'? ('-dx' dx=integerR)? ('-dy'  dy=integerR)?# ExtraText
     ;
 
 integerR returns [Object rep]

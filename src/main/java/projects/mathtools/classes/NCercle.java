@@ -1,7 +1,7 @@
 package projects.mathtools.classes;
 
+import gui.CanvasFX;
 import gui.FX;
-import gui.FXCanvas;
 import gui.dialogitems.OmMenuItem;
 import gui.renders.GCRender;
 import gui.renders.I_Render;
@@ -9,11 +9,22 @@ import javafx.geometry.Point2D;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Menu;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import projects.music.classes.abstracts.extras.I_Extra;
+import projects.music.classes.abstracts.extras.Extra.ExtraText;
+import projects.music.classes.music.Chord.ChordDrawable;
+import projects.music.editors.MusicalParams;
+import projects.music.editors.StaffSystem;
+import projects.music.editors.StaffSystem.MultipleStaff;
+import projects.music.editors.drawables.ExtraDrawable;
+import projects.music.editors.drawables.I_Drawable;
+import projects.music.editors.drawables.I_ExtraDrawable;
+import projects.music.editors.drawables.ExtraDrawable.ExtraTextDrawable;
 import kernel.I_OMObject;
 import kernel.annotations.Ombuilder;
 import kernel.annotations.Omclass;
@@ -25,7 +36,7 @@ import kernel.frames.views.PanelCanvas;
 import kernel.metaobjects.Patch;
 
 @Omclass(icon = "421", editorClass = "projects.mathtools.classes.NCercle$NCercleEditor")	
-public class NCercle implements I_OMObject, Serializable { 
+public class NCercle implements I_OMObject, I_Extra, Serializable { 
 	
 
 	
@@ -71,7 +82,7 @@ public class NCercle implements I_OMObject, Serializable {
 		return canvas.snapshot(null,null);
 	}*/
 	
-	public  void drawPreview (I_Render g, FXCanvas canvas, double x, double x1, double y, double y1, I_EditorParams params) {
+	public  void drawPreview (I_Render g, CanvasFX canvas, double x, double x1, double y, double y1, I_EditorParams params) {
 		drawCercle (g, x + ((x1 - x) / 2),  y + ((y1 - y)/ 2), Math.min ( (x1 - x)/ 2.2,  ( y1 - y) / 2.2), 1, 3, 0, true, false);
 	}
 	
@@ -142,7 +153,11 @@ public class NCercle implements I_OMObject, Serializable {
     //////////////////////PANEL//////////////////////
     public static class NCerclePanel extends PanelCanvas {
     	
-    	boolean hideback = false;
+    	public NCerclePanel() {
+			super(1000, 1000);
+		}
+
+		boolean hideback = false;
     	boolean polygone = true;
     	
     	public void init () {
@@ -196,11 +211,48 @@ public class NCercle implements I_OMObject, Serializable {
     		NCercle obj = (NCercle) getEditor().getObject();
     		obj.DrawContentsInRect(g, 0.0, w(), 0.0, h(), polygone, hideback);
     	}
-    }	
+    }
+
+    /////////////////////////////////EXTRA/////////////////////
+	@Override
+	public I_ExtraDrawable makeDrawable(I_Extra ref, I_Drawable drawable) {
+		return new ExtraCercleDrawable (ref, drawable);
+	}
+
+
+	@Override
+	public int dx() {
+		return 0;
+	}
+
+
+	@Override
+	public int dy() {
+		return 0;
+	}	
+	
+	public static class ExtraCercleDrawable extends ExtraDrawable {
+
+		public ExtraCercleDrawable(I_Extra ref, I_Drawable drawable) {
+			super(ref, drawable);
+		}
+		
+		@Override
+		public void drawExtra(I_Render g, double deltax) {
+			ChordDrawable chordD = (ChordDrawable) drawable;
+			MusicalParams params = chordD.params;
+			StaffSystem staffSystem = params.getStaff();
+	    	MultipleStaff staff = staffSystem.getStaffs().get(chordD.staffnum);
+	    	int size = params.fontsize.get();
+	    	int dent = size/4;
+	    	double posx = drawable.getCX() + deltax + extra.dx()*dent;
+	    	double posy = staff.getBottomPixel(size) + extra.dy() *dent + size;
+			((NCercle) extra). DrawContentsInRect(g, posx, posx + 2*size, posy, posy + 2*size, true, true);
+		}
+	}
     
     ///////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////
-
 }
 
     

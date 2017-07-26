@@ -3,9 +3,6 @@ package kernel.tools;
 import java.util.ArrayList;
 import java.util.List;
 
-
-import javafx.geometry.Point2D;
-
 public class ST {
 	
 /////////////////////////////////////////////
@@ -83,6 +80,7 @@ public class ST {
         return rep;
     }
     
+   
     public static List<Double> xTodx (List<Double> list) {
     	List<Double> rep = new ArrayList<Double>();
     	for (int i = 0; i < list.size()-1; i++)
@@ -161,6 +159,31 @@ public class ST {
         		rep.add(item);
         }
        return rep;
+    }
+    
+    //////
+/*    "
+    ^
+    |
+    |
+  y2|..................*
+    |                  .
+  y0|............X     .
+    |            .     . 
+  y1|......*     .     . 
+    |      .     .     . 
+    |      .     .     . 
+    |      .     .     .    
+    |______._____._____.______>
+           x1    x     x2
+
+"
+*/
+    
+    public static double linearInterpol (double x1, double x2, double y1, double y2, double x) {
+    	if (x1 == x2)
+    		return y1;
+    	else return y1 + ((y2 - y1) * ((x -  x1)  / (x2 -  x1)));
     }
     
   

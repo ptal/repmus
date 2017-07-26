@@ -2,11 +2,10 @@ package launch;
 
 import kernel.frames.views.EditorView;
 import kernel.metaobjects.Patch;
-import kernel.tools.Fraction;
-import projects.music.classes.abstracts.Strie_MO;
-import projects.music.editors.MusChars;
-import projects.music.midi.MidiSetUp;
-import gui.FX;
+import projects.music.midi.synthe.Piano;
+
+import javax.sound.midi.Receiver;
+
 import gui.WorkSpaceTree;
 import javafx.application.Application;
 import javafx.collections.ObservableList;
@@ -24,6 +23,8 @@ import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
 public class RepMus extends Application {
+
+	static Piano piano = new Piano();
 
 	//////////////////////////////////////////////////////
 	public class OmTab extends Tab {
@@ -97,7 +98,7 @@ public class RepMus extends Application {
 
 			OmTab tab = new OmTab(ed);
 			tab.setText("editor circulo");
-			tab.setContent(ed.omGetDelegate());
+			tab.setContent(ed);
 			edWhere.getTabs().add(tab);
 			SingleSelectionModel<Tab> selectionModel =  edWhere.getSelectionModel();
 			selectionModel.select(tab);
@@ -166,8 +167,8 @@ public class RepMus extends Application {
 
 		final OmTabPane consTabPane = new OmTabPane();
 		OmTab tab2 = new OmTab(null);
-		tab2.setText("console");
-		tab2.setContent(new Button("Button One"));
+		tab2.setText("Synthe");
+		tab2.setContent(piano);
 		consTabPane.getTabs().add(tab2);
 
 		final StackPane inspectPane = new StackPane();
@@ -198,8 +199,6 @@ public class RepMus extends Application {
 		scene.addEditor(patcheditor, 1);
 		primaryStage.setScene(scene);
 		primaryStage.show();
-		MidiSetUp ms = new MidiSetUp();
-		ms.open();
 		Font omHeads = new Font("omheads",24);
 
 		}
@@ -224,5 +223,9 @@ public class RepMus extends Application {
 	        e.printStackTrace();
 	    }
 	}*/
+
+	 public static Receiver getReceiver() {
+	    	return piano.receiver;
+	    }
 
 }

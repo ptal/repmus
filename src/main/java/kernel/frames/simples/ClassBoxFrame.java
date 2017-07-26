@@ -6,17 +6,15 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
+import projects.music.editors.MusicalPanel;
 import resources.Loader;
 import javafx.geometry.Point2D;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.image.Image;
-import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.Dragboard;
-import javafx.scene.input.TransferMode;
 import javafx.scene.paint.Color;
+import gui.CanvasFX;
 import gui.FX;
-import gui.FXCanvas;
 import gui.dialogitems.OmMenu;
 import gui.dialogitems.OmMenuItem;
 import gui.renders.GCRender;
@@ -58,8 +56,7 @@ public class ClassBoxFrame extends BoxFrame {
      		omAddSubviews (output);
      	}
      	Image icon = Loader.getIconFromDic(theicon);
-     	canvas = new BoxClassCanvas(icon, object);
-     	canvas.omSetViewSize(w(),h() - 18);
+     	canvas = new BoxClassCanvas(icon, object, w(),h() - 18);
      	canvas.omSetViewPosition(0, 9);
      	omAddSubviews(canvas);
      	canvas.omUpdateView(true);
@@ -128,14 +125,14 @@ public class ClassBoxFrame extends BoxFrame {
 	}
 	
 	///////////////////////
-	protected class BoxClassCanvas extends FXCanvas{
+	protected class BoxClassCanvas extends CanvasFX{
 		Image icon;
 		Image pict;
 		Point2D iconsize;
 		I_Box box;
 		
-		public BoxClassCanvas (Image theicon, I_Box thebox) {
-			super();
+		public BoxClassCanvas (Image theicon, I_Box thebox, double w, double h) {
+			super(w,h);
 	     	icon = theicon;
 	     	iconsize = new Point2D (icon.getWidth(), icon.getHeight());
 	     	pict = Loader.getImageFromDic("editorpict");

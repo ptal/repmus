@@ -1,14 +1,16 @@
 package projects.music.classes.music;
 
+
 import java.util.ArrayList;
 import java.util.List;
 
 import kernel.annotations.Ombuilder;
 import kernel.annotations.Omclass;
 import kernel.annotations.Omvariable;
-import kernel.tools.ParseException;
-import kernel.tools.Parser;
 import kernel.tools.ST;
+// import projects.constraints.AIS;
+import projects.mathtools.classes.IsographyExplorer;
+import projects.mathtools.classes.MT;
 import projects.music.classes.abstracts.MusicalObject;
 import projects.music.classes.abstracts.Parallel_L_MO;
 import projects.music.classes.music.Chord;
@@ -20,7 +22,10 @@ import projects.music.editors.MusicalParams;
 import projects.music.editors.MusicalTitle;
 import projects.music.editors.drawables.ContainerDrawable;
 import projects.music.editors.drawables.I_Drawable;
+import projects.music.midi.I_PlayEvent;
 import resources.json.JsonRead;
+import projects.music.classes.abstracts.extras.Extra.ExtraText;
+import projects.mathtools.classes.NCercle;
 
 
 	@Omclass(icon = "138", editorClass = "projects.music.classes.music.ChordSeq$ChordSeqEditor")
@@ -40,7 +45,8 @@ import resources.json.JsonRead;
 		@Omvariable
 		public int legato = 0;
 
-		@Ombuilder(definputs="((6000)); (0); ((1000)); ((80)); ((0)); ((1)); 100")
+		@Ombuilder(definputs="((6000 6400 6700) (6000 6400 6900) (6000 6500 6900) (6200 6500 6900) (6200 6500 7000) "
+				+ "(6200 6700 7000) (6300 6700 7000) (6000 6300 6700) (6000 6300 6800) (6000 6500 6800)); (0 1000); ((1000)); ((80)); ((0)); ((1)); 100")
 		public ChordSeq(List<List<Integer>> Lmidic, List<Long> Lonset,
 				List<List<Long>> Ldur, List<List<Integer>> Lvel, List<List<Long>> Loffset,
 				List<List<Integer>> Lchan, int Legato) {
@@ -48,7 +54,7 @@ import resources.json.JsonRead;
 		}
 
 		public ChordSeq() {
-			ChordSeq cs  = (ChordSeq) JsonRead.getFile("/Users/agonc/JAVAWS/organum/chord-seq.json");
+			ChordSeq cs  = (ChordSeq) JsonRead.getFile("/Users/agonc/Repmus-project/repmus-master/main/src/resources/json/chord-seq.json");
 			initChordSeq(cs.lmidic, cs.lonset, cs.ldur, cs.lvel,  cs.loffset, cs.lchan, cs.legato);
 		}
 
@@ -112,8 +118,14 @@ import resources.json.JsonRead;
 			}
 		}
 
-		public I_Drawable makeDrawable (MusicalParams params) {
-			return new ChordSeqDrawable (this, params, 0, true);
+		public I_Drawable makeDrawable (MusicalParams params, boolean root) {
+			return new ChordSeqDrawable (this, params, 0, root);
+		}
+
+		@Override
+		public void PrepareToPlayMidi (long at , int approx, List<I_PlayEvent> list) {
+			for (MusicalObject obj : getElements())
+				obj.PrepareToPlayMidi(at+ obj.getOnsetMS(), approx, list);
 		}
 
 	//////////////////////////////////////////////////
@@ -151,9 +163,14 @@ import resources.json.JsonRead;
 		case "c":
 			setCSP();
 			break;
+		case "k":
+			setPK();
+			break;
 		case "s":
 			solveCSP();
 			break;
+		default	:
+			super.KeyHandler(car); break;
 		}
 	}
 
@@ -162,12 +179,27 @@ import resources.json.JsonRead;
 		updatePanel(true);
 		}
 
+		public void setPK () {
+			ChordSeq object= (ChordSeq) this.getEditor().getObject();
+			//for (MusicalObject chord : object.getElements()) {
+			//	chord.addExtra(new ExtraText ("bla-", true, 0, 0));
+			//}
+
+			//for (MusicalObject chord : object.getElements()) {
+			//	List<List<Integer>> thepoints = new ArrayList<List<Integer>>();
+			//	thepoints.add(MT.mc2Z12 ( ((Chord) chord).lmidic) );
+			//	chord.addExtra(new NCercle (12, thepoints));
+			//}
+
+			object.addExtra(new IsographyExplorer(object));
+			updatePanel(true);
+		}
+
 		public void solveCSP () {
 			// if (csp != null)
 			// 	csp.solve();
 			// csp = null;
 		}
-
 
 	@Override
 	public int getZeroPosition () {
@@ -190,7 +222,7 @@ import resources.json.JsonRead;
 	//////////////////////DRAWABLE//////////////////////
 
 	public static class ChordSeqDrawable extends ContainerDrawable {
-		int staffnum =0;
+		public int staffnum =0;
 
 		public ChordSeqDrawable (ChordSeq theRef, MusicalParams params, int thestaffnum, boolean ed_root) {
 			editor_root = ed_root;
@@ -215,7 +247,7 @@ import resources.json.JsonRead;
 				makeSpaceObjectList();
 				consTimeSpaceCurve(size, 0, params.zoom.get());
 			}
-		}
+			makeGraphicExtras ();
+		 }
 	}
-
-	 }
+}

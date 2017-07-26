@@ -27,21 +27,26 @@ public class MT {
 			      }
 			
 	//////convertion from mc to Z12
-	public static <T> T mc2Z12 (T midic) {
-		//error
-		return null;
-	}
 	
-	public static int mc2Z12 (int midic) {
+	public static Integer mc2Z12 (Integer midic) {
 		return mod (midic/100, 12);
 	}
 	
-	public static <T> List<T> mc2Z12(List <T> midic) {
-		List<T> rep = new ArrayList<T>();
-		for (T elem : midic) 
+	public static List<Integer> mc2Z12 (List<Integer> midic) {
+		List<Integer> rep = new ArrayList<Integer>();
+		for (Integer elem : midic) 
 			rep.add(mc2Z12(elem));
 		return rep;
 	}
+	
+	public static  List<List<Integer>> lmc2Z12 (List<List<Integer>> midic) {
+		List<List<Integer>> rep = new ArrayList<List<Integer>>();
+		for (List<Integer> elem : midic) 
+			rep.add(mc2Z12(elem));
+		return rep;
+	}
+	
+
 	
 	public static String num2name (int n) {
 		String rep = "";

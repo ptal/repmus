@@ -1,7 +1,6 @@
 package projects.music.classes.music;
 
 import gui.FX;
-import gui.FXCanvas;
 import gui.renders.I_Render;
 
 import java.util.List;
@@ -22,105 +21,108 @@ import projects.music.editors.StaffSystem;
 import projects.music.editors.StaffSystem.MultipleStaff;
 import projects.music.editors.drawables.I_Drawable;
 import projects.music.editors.drawables.SimpleDrawable;
+import projects.music.midi.I_PlayEvent;
 
 
 	@Omclass(icon = "138", editorClass = "projects.music.classes.music.Silence$SilenceEditor")
 	public class Silence extends Simple_L_MO {
-		
+
 		@Omvariable
 		public long dur = 0;
-		
-		
+
+
 		@Ombuilder(definputs="1000")
 		public Silence (long thedur) {
 			dur = thedur;
 		}
-		
+
 		public Silence() {
 			this(1000);
 		}
-		
+
 		@Override
 		public long getDuration() {
 			return dur;
 		}
-		
+
 
 		@Override
 		public void setDuration(long thedur) {
 			dur = thedur;
 		}
-		
-		public I_Drawable makeDrawable (MusicalParams params) {
-			return new SilenceDrawable (this, params, 0, true);
+
+		public I_Drawable makeDrawable (MusicalParams params, boolean root) {
+			return new SilenceDrawable (this, params, 0, root);
 		}
-		
+
+
+
 	//////////////////////////////////////////////////
 	//////////////////////EDITOR//////////////////////
 	//////////////////////////////////////////////////
 	public static class SilenceEditor extends MusicalEditor {
-	
-	
+
+
 	@Override
 	public String getPanelClass (){
 	return "projects.music.classes.music.Silence$SilencePanel";
 	}
-	
+
 	@Override
 	public String getControlsClass (){
 	return "projects.music.classes.music.Silence$SilenceControl";
 	}
-	
+
 	@Override
 	public String getTitleBarClass (){
 	return "projects.music.classes.music.Silence$SilenceTitle";
 	}
-	
+
 	}
-	
+
 	//////////////////////PANEL//////////////////////
 	public static class SilencePanel extends MusicalPanel {
-		
+
 	public void KeyHandler(String car){
 		switch (car) {
 		case "h" : takeSnapShot ();
 			break;
 		}
 	}
-	
-	
+
+
 	@Override
 	public int getZeroPosition () {
 	return 2;
 	}
-	
-	}	
-	
-	
+
+	}
+
+
 	//////////////////////CONTROL//////////////////////
 	public static class SilenceControl extends MusicalControl {
-	
-	}	
-	
+
+	}
+
 	//////////////////////TITLE//////////////////////
 	public static class SilenceTitle extends MusicalTitle {
-	
-	}	
-	
+
+	}
+
 	//////////////////////DRAWABLE//////////////////////
 	///////////////////////////////////////////////////
 	public static class SilenceDrawable extends SimpleDrawable {
 		int staffnum =0;
-		
+
 		public SilenceDrawable (Silence theRef, MusicalParams params, int thestaffnum, boolean ed_root) {
 			editor_root = ed_root;
 			InitSilenceDrawable(theRef, params, thestaffnum);
 		}
-		
+
 		public SilenceDrawable (Silence theRef, MusicalParams params, int thestaffnum) {
 			InitSilenceDrawable(theRef, params, thestaffnum);
 		}
-	
+
 		public void InitSilenceDrawable (Silence theRef, MusicalParams theparams, int thestaffnum) {
 			params = theparams;
 			ref = theRef;
@@ -133,9 +135,10 @@ import projects.music.editors.drawables.SimpleDrawable;
 			double ycenter = staffToppixels + (staffBottompixels - staffToppixels) / 2;
 			setRectangle (0, ycenter - size/8, ms2pixel(((Silence) ref).dur, size),size*3/8);
 		}
-		
-		public void drawObject(I_Render g, FXCanvas panel, Rectangle rect, 
-				 List<I_Drawable> selection, double x0, 
+
+		@Override
+		public void drawObject(I_Render g, Rectangle rect,
+				 List<I_Drawable> selection, double x0,
 				double deltax, double deltay) {
 			//voila le bon exemple
 			//les rectangles sont mis avant de dessiner
@@ -147,12 +150,12 @@ import projects.music.editors.drawables.SimpleDrawable;
 			FX.omDrawLine(g, x, y(), x, y()+h());
 			FX.omDrawLine(g, x+w(), y(), x+w(), y()+h());
 		}
-		
-		public void collectTemporalObjectsL(List<SpacedPacket> timelist) {
-			  timelist.add(new SpacedPacket(this, this.ref.getOnsetMS()));
+
+		public void collectTemporalObjects(List<SpacedPacket> timelist) {
+			  timelist.add(new SpacedPacket(this, this.ref.getOnsetMS(), false));
 		}
-	
+
 	}
-		
+
 }
 

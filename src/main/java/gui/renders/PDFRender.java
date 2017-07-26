@@ -1,11 +1,10 @@
 package gui.renders;
 
+import gui.CanvasFX;
 import gui.FX;
-import gui.FXCanvas;
 
 import java.io.FileOutputStream;
 
-import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.Font;
 import com.itextpdf.text.Rectangle;
@@ -35,9 +34,9 @@ public class PDFRender implements I_Render{
 	javafx.scene.text.Font curfont;
 
 	javafx.scene.paint.Color colorstroke = javafx.scene.paint.Color.BLACK;
-	javafx.scene.paint.Color colorfill = null;
+	javafx.scene.paint.Color colorfill = javafx.scene.paint.Color.BLACK;
 
-	public PDFRender (FXCanvas view){
+	public PDFRender (CanvasFX view){
 		String filesign = "/fonts/mac/omsign.ttf";
 		String fileextra = "/fonts/mac/omextras.ttf";
 		String fileomicron = "/fonts/mac/omicron.ttf";
@@ -99,7 +98,7 @@ public class PDFRender implements I_Render{
 	@Override
 	public void omSetColorStroke(javafx.scene.paint.Color color) {
 		colorstroke = color;
-		cb.setRGBColorStroke((int) color.getRed()*255, (int) color.getGreen()*255, (int)color.getBlue()*255);
+		cb.setRGBColorStroke((int) Math.round(color.getRed()*255), (int) Math.round(color.getGreen()*255), (int) Math.round(color.getBlue()*255));
 	}
 
 	@Override
@@ -110,7 +109,7 @@ public class PDFRender implements I_Render{
 	@Override
 	public void omSetColorFill(javafx.scene.paint.Color color) {
 		if (color != null)
-			cb.setRGBColorFill((int) color.getRed()*255, (int) color.getGreen()*255, (int)color.getBlue()*255);
+			cb.setRGBColorFill((int) Math.round(color.getRed()*255), (int) Math.round( color.getGreen()*255), (int) Math.round(color.getBlue()*255));
 		colorfill = color;
 
 	}
@@ -159,13 +158,13 @@ public class PDFRender implements I_Render{
 
 	@Override
 	public void omFillRect(double x, double y, double w, double h) {
-		cb.rectangle(x, pgh-y, w, h);
+		cb.rectangle(x, pgh - y - h, w, h);
 		cb.fill();
 	}
 
 	@Override
 	public void omDrawRect(double x, double y, double w, double h) {
-		cb.rectangle(x, pgh-y, w, h);
+		cb.rectangle(x, pgh - y - h, w, h);
 		cb.stroke();
 	}
 

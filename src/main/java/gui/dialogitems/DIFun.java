@@ -4,6 +4,6 @@ package gui.dialogitems;
 	@FunctionalInterface
 	public interface DIFun
 	{
-	   void DIAction (FXWidget di);
+	   void DIAction (I_Widget di);
 	}
 

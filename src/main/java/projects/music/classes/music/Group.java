@@ -1,16 +1,15 @@
 package projects.music.classes.music;
 
 import gui.FX;
-import gui.FXCanvas;
 import gui.renders.I_Render;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import com.sun.javafx.geom.Rectangle;
 
 import javafx.geometry.Point2D;
+import javafx.scene.text.Font;
 import kernel.annotations.Ombuilder;
 import kernel.annotations.Omclass;
 import kernel.tools.Fraction;
@@ -34,14 +33,13 @@ import projects.music.editors.drawables.ContainerDrawable;
 import projects.music.editors.drawables.Figure;
 import projects.music.editors.drawables.I_Drawable;
 import projects.music.editors.drawables.I_FigureDrawable;
-import projects.music.editors.drawables.SimpleDrawable;
 
 @Omclass(icon = "226", editorClass = "projects.music.classes.music.RChord$RChordEditor")
 public class Group extends Sequence_S_MO implements I_RT, I_InRSeqChord {
-	
-	@Ombuilder(definputs="(1 (1 1 1)) ; ( RChord((6000), (80), (0), 1/8, (1))"
-			+ "RChord ((6500) , (80), (0), 1/4, (1) )"
-			+ "RChord ((7200) , (80), (0), 1/4, (1) ) ) ; 60")
+
+	@Ombuilder(definputs="(1/4 (1 1 (1 (1 1 1)) 1 1)) ; ( RChord((8000), (80), (0), 1/8, (1))"
+			+ "RChord ((8000) , (80), (0), 1/4, (1) )"
+			+ "RChord ((8000) , (80), (0), 1/4, (1) ) ) ; 60")
 	public Group (RTree thetree, List<RChord> thechords, double tempo) {
 		tree = thetree;
 		chords = thechords;
@@ -49,17 +47,23 @@ public class Group extends Sequence_S_MO implements I_RT, I_InRSeqChord {
 		thetree.setDurChilds();
 		setQDurs(tree.dur);
 		fillGroup(chords.get(0), tempo);
+
+		System.out.println ("en groupe sin last" + tree.dur);
 	}
-	
+
 	public Group (RTree thetree, List<RChord> thechords, double tempo, RChord lastchord) {
+
+
 		tree = thetree;
 		chords = thechords;
 		setTempo(tempo);
+		setQDurs(tree.dur);
 		setRTdur(tree.dur);
 		setRTproplist(tree.proplist);
 		fillGroup(lastchord, tempo);
+		System.out.println ("en groupe " + tree.dur + " " + qdur);
 	}
-	
+
 	public Group () {
 		List<RTree> prop = new ArrayList<RTree>();
 		prop.add(new RTree(1,null));
@@ -73,7 +77,7 @@ public class Group extends Sequence_S_MO implements I_RT, I_InRSeqChord {
 		setRTproplist(tree.proplist);
 		fillGroup(chords.get(0), 60);
 	}
-	
+
 	public void fillGroup (RChord lastchord, double tempo) {
 		Fraction objonset = new Fraction(0);
 		Fraction objdur;
@@ -116,43 +120,29 @@ public class Group extends Sequence_S_MO implements I_RT, I_InRSeqChord {
 				lastchord = chords.get(0);
 			}
 		}
+		setQDurs(objonset);
 	}
-	
-	/*(defmethod get-group-ratio ((self group))
-			   (let* ((tree (tree self))
-			          (extent (car tree))
-			          (addition (loop for item in (second tree) sum (floor (abs (if (listp item) (car item) item))))))
-			     (cond
-			      ((= (round (abs addition)) 1) nil)
-			      ((integerp (/ extent addition)) addition)
-			      ;; never happen
-			      ((and (integerp (/ extent addition)) 
-			             (or (power-of-two-p (/ extent addition))
-			                 (and (integerp (/ addition extent)) 
-			                      (power-of-two-p (/ addition extent)))))  nil)
-			      (t addition))))
-			      */
-	
+
 	public Point2D getAmbitus () {
 		List<MusicalObject> notes = new ArrayList<MusicalObject> ();
 		getObjsOfClass(RNote.class, notes);
-		double min = 6000;
-		double max = 6000;
+		double min = 12700;
+		double max = 0;
 		for (MusicalObject note : notes) {
 			min = Math.min(min, ((RNote) note).getMidic());
 			max = Math.max(max, ((RNote) note).getMidic());
 		}
 		return new Point2D(min,max);
-	}		     
-	
-	//////////////////////////////////////////////////
-	public I_Drawable makeDrawable (MusicalParams params) {
-		return new GroupDrawable (this, params, 0, true);
 	}
-	
+
+	//////////////////////////////////////////////////
+	public I_Drawable makeDrawable (MusicalParams params, boolean root) {
+		return new GroupDrawable (this, params, 0, root);
+	}
+
 	//////////////////////EDITOR//////////////////////
 	public static class GroupEditor extends MusicalEditor {
-		
+
 		@Override
 		public String getPanelClass (){
 			return "projects.music.classes.music.Group$GroupPanel";
@@ -172,7 +162,7 @@ public class Group extends Sequence_S_MO implements I_RT, I_InRSeqChord {
 
 	//////////////////////PANEL//////////////////////
 	public static class GroupPanel extends MusicalPanel {
-		
+
 		@Override
 		public void KeyHandler(String car){
 			switch (car) {
@@ -191,18 +181,18 @@ public class Group extends Sequence_S_MO implements I_RT, I_InRSeqChord {
 		public int getZeroPosition () {
 			return 2;
 		}
-	}	
+	}
 
 
 	//////////////////////CONTROL//////////////////////
 	public static class GroupControl extends MusicalControl {
 
-	}	
+	}
 
 	//////////////////////TITLE//////////////////////
 	public static class GroupTitle extends MusicalTitle {
 
-	}	
+	}
 
 	//////////////////////DRAWABLE//////////////////////
 	public static class GroupDrawable extends ContainerDrawable {
@@ -212,16 +202,18 @@ public class Group extends Sequence_S_MO implements I_RT, I_InRSeqChord {
 		double ybarpos;
 		double interBeamSpace;
 		int staffnum = 0;
+		String uniteStr = null;
+		int uniteDepht = 0;
 
 		public GroupDrawable (Group theRef, MusicalParams theparams, int thestaffnum) {
 			initGroupDrawable(theRef, theparams, thestaffnum);
-		}	
-	
+		}
+
 		public GroupDrawable (Group theRef, MusicalParams theparams, int thestaffnum, boolean ed_root) {
 			editor_root = ed_root;
 			initGroupDrawable(theRef, theparams, thestaffnum);
 		}
-	
+
 		public void initGroupDrawable (Group theRef, MusicalParams theparams, int thestaffnum){
 			ref = theRef;
 			params = theparams;
@@ -229,11 +221,14 @@ public class Group extends Sequence_S_MO implements I_RT, I_InRSeqChord {
 			int size = params.fontsize.get();
 			interBeamSpace = 1 + (size * 3/16);
 			for (MusicalObject obj : theRef.getElements()) {
+				Fraction dur = ((Strie_MO) obj).getQDurs();
 				if (obj instanceof RChord) {
-					Fraction dur = ((RChord) obj).getQDurs();
+					//Fraction dur = ((RChord) obj).getQDurs();
 					long newden= Strie_MO.findBeatSymbol(dur.denum);
 					Fraction newdur = new Fraction(dur.num,newden);
-					List<Figure> figures = Strie_MO.dur2symbols (newdur);
+					List<I_FigureDrawable> figures = new ArrayList<I_FigureDrawable> ();
+					for (Figure item : Strie_MO.dur2symbols (newdur))
+						figures.add(item);
 					RChordDrawable gchord = new RChordDrawable ((RChord) obj, params, staffnum, figures);
 					gchord.stem_p = false;
 					inside.add(gchord);
@@ -256,207 +251,142 @@ public class Group extends Sequence_S_MO implements I_RT, I_InRSeqChord {
 			}
 			StaffSystem staffSystem = params.getStaff();
 			MultipleStaff staff = staffSystem.getStaffs().get(staffnum);
-			if (isRootandGroup_p ()) 
+			if (isRootandGroup_p ()) {
 				setStemDirSize(staff.getMidiCenter());
-		}	
-	
+				ybarpos = getYbarPos(size);
+				setUniteStr();
+			}
+		}
+
 		public boolean isRootandGroup_p () {
-			if (this.getFather() == null) 
+			if (this.getFather() == null)
 				return true;
 			else
 				return ! (this.getFather() instanceof  GroupDrawable);
 		}
-		
-		
+
 		public void setStemDirSize (double midicenter) {
 			Point2D amb = ((Group) ref).getAmbitus();
 			double moyenne = amb.getX() + ((amb.getY() - amb.getX())/2);
-			up_p = (moyenne < midicenter * 100);
-			ybarpos = getYbarPos();
+			up_p = (moyenne < (midicenter * 100));
 		}
-	
-		public double getYbarPos () {
-	/*		if (up_p){
-			 min posY + stemsize
+
+		public int setUniteStr () {
+			int rep = 0;
+			for (I_Drawable item : this.getInside()) {
+				if (item instanceof GroupDrawable)
+					rep = Math.max(rep, ((GroupDrawable) item).setUniteStr());
 			}
-			else{
-				max posY + stemsize
-			}*/
-			return 0.0;
+			uniteStr = "3:4";
+			if (uniteStr != null) {
+				rep = rep + 1;
+				uniteDepht = rep;
+			}
+			return rep;
 		}
-			
-			
-	public void drawContainersObjects (I_Render g, FXCanvas panel, Rectangle rect,
+
+		public double getYbarPos (int size) {
+			List<I_FigureDrawable> atomes = getAtomes();
+			if (up_p){
+				double rep = 1000000;
+				for (I_FigureDrawable item : atomes) {
+					double upYpos = item.getUpYpos(size);
+					rep = Math.min(rep, upYpos - item.getStemSize(item.getBeamsNum(),  size));
+				}
+			 	return  rep;
+			} else{
+				double rep = 0;
+				for (I_FigureDrawable item : atomes) {
+					double dwnYpos = item.getDwnYpos(size);
+					rep = Math.max(rep, dwnYpos + item.getStemSize(item.getBeamsNum(), size));
+				}
+			 	return rep;
+			}
+		}
+
+	public void drawContainersObjects (I_Render g, Rectangle rect,
 			 List<I_Drawable> selection, double deltax) {
 		for (I_Drawable item : this.getInside()) {
 			if (item instanceof RChordDrawable)
-				((RChordDrawable) item).drawContainersObjects(g, panel, rect, selection, deltax);
+				((RChordDrawable) item).drawContainersObjects(g, rect, selection, deltax);
 			else if (item instanceof RestDrawable)
-				((RestDrawable) item).drawContainersObjects(g, panel, rect,selection, deltax);
+				((RestDrawable) item).drawContainersObjects(g, rect,selection, deltax);
 			else if (item instanceof GroupDrawable)
-				((GroupDrawable) item).drawContainersObjects(g, panel, rect, selection, deltax);
+				((GroupDrawable) item).drawContainersObjects(g, rect, selection, deltax);
 		}
 		int size = params.fontsize.get();
 		if (isRootandGroup_p ())  {
-			groupDrawStems(g, up_p, size, deltax);
-			drawBeams(g, size, deltax);
-			drawNumDen();
+			groupDrawStems(g, up_p, deltax, ybarpos);
+			drawBeams(g, up_p, size, deltax, getAtomes(), ybarpos, 1 + (size * 3/16));
+			drawNumDens(g, up_p, size, deltax);
 		}
 	}
-	
-	public void groupDrawStems(I_Render g, boolean up_p, double size, double deltax) {
+
+
+	public void drawNumDen (I_Render g, boolean up_p, int size, double deltax) {
+		List<I_FigureDrawable> atomes = getAtomes();
+		I_FigureDrawable fig1 = atomes.get(0);
+		I_FigureDrawable fig2 = atomes.get(atomes.size()-1);
+		Font thefont = params.getFont("normal2.3Size");
+		double ssize = FX.omStringSize(uniteStr,  thefont);
+		FX.omSetFont(g, thefont);
+		if (up_p) {
+			double y0 = ybarpos - size/16 - (size/3 * uniteDepht);
+			double x0 = fig1.getCX() + deltax;
+			//double x1 = fig2.getCX()+deltax + fig2.getStrSize(size) +size/4;
+			//double x1 = fig2.getCX()+deltax + 7.176000118255615 +size/4;
+			double x1 = fig2.getCX()+deltax  +size/4;
+			FX.omDrawLine(g, x0, y0, x0 +(x1-x0-ssize-4)/2 , y0);
+			FX.omDrawLine(g, x0 + (x1-x0+ssize+4)/2, y0, x1 , y0);
+			FX.omDrawLine(g, x0, y0, x0 , y0 + size/5);
+			FX.omDrawLine(g, x1, y0, x1 , y0 + size/5);
+			FX.omDrawString(g, x0 + (x1-x0-ssize)/2, y0 + size/16, uniteStr);
+		}
+		else {
+			double y0 = ybarpos + size/10 + (size/3 * uniteDepht);
+			double x0 = fig1.getCX() + deltax - size/4;
+			//double x1 = fig2.getCX()+deltax + fig2.getStrSize(size) ;
+			double x1 = fig2.getCX() + deltax + 7.176000118255615 ;
+			FX.omDrawLine(g, x0, y0, x0 +(x1-x0-ssize-4)/2 , y0);
+			FX.omDrawLine(g, x0 + (x1-x0+ssize+4)/2, y0, x1 , y0);
+			FX.omDrawLine(g, x0, y0, x0 , y0 - size/5);
+			FX.omDrawLine(g, x1, y0, x1 , y0 - size/5);
+			FX.omDrawString(g, x0 + (x1-x0-ssize)/2, y0 + size/16, uniteStr);
+		}
+	}
+
+	public void drawNumDens(I_Render g, boolean up_p, int size, double deltax) {
+		if (uniteStr != null)
+			drawNumDen (g, up_p, size, deltax);
+		for (I_Drawable item : this.getInside()) {
+			if (item instanceof GroupDrawable)
+				((GroupDrawable) item).drawNumDen(g, up_p, size, deltax );
+		}
+	}
+
+	public void groupDrawStems(I_Render g, boolean up_p, double deltax, double ybarpos) {
 		for (I_Drawable item : this.getInside()) {
 			if (item instanceof RChordDrawable)
-				((RChordDrawable) item).groupDrawStems(g, up_p, size, deltax);
+				((RChordDrawable) item).groupDrawStems(g, up_p, deltax, ybarpos);
 			else if (item instanceof RestDrawable)
-				((RestDrawable) item).groupDrawStems(g, up_p, size, deltax);
+				((RestDrawable) item).groupDrawStems(g, up_p, deltax, ybarpos);
 			else if (item instanceof GroupDrawable)
-				((GroupDrawable) item).groupDrawStems(g, up_p, size, deltax);
-		}
-	}
-	
-	public void drawBeams(I_Render g, int size, double deltax) {
-		List <I_Drawable> atomes =  getAtomes();
-		int len = atomes.size();
-		I_FigureDrawable cur;
-		I_FigureDrawable next;
-		I_FigureDrawable prev;
-		for (int i = 0; i < len; i++) {
-			int  shared;
-			int propres;
-			cur = (I_FigureDrawable) atomes.get(i);
-			if (i+1 == len ) next = null; else next = (I_FigureDrawable) atomes.get(i+1);
-			if (i == 0 ) prev = null; else prev = (I_FigureDrawable) atomes.get(i-1);
-			
-			if (i == 0 || ((SimpleDrawable) cur).firstOfChildren()) {
-				shared = getSharedWithNext(cur,next);
-				propres = cur.getBeamsNum() - shared;
-				if (next != null)
-					drawLongBeams (g,cur, shared, next.getCX() - cur.getCX(),size, deltax) ;
-				drawCourtBeams (g, cur, propres, size, shared);
-			} 
-			else if (i+1 == len ) {
-				if (prev != null)
-					shared = getSharedWithNext(prev,cur);
-				else shared = 0;
-				propres = cur.getBeamsNum() - shared;
-				drawCourtBeams (g, cur, propres, size, shared);
-			}
-			else {
-				if (((SimpleDrawable) cur).lastOfChildren() || ((SimpleDrawable) next).firstOfChildren()) {
-					if (prev != null)
-						shared = getSharedWithNext(prev,cur);
-					else shared = 0;
-					propres = cur.getBeamsNum() - shared;
-					drawCourtBeams (g, cur, propres, size, shared);
-					shared = Math.min(1,Math.min(next.getBeamsNum(),cur.getBeamsNum()));
-					drawLongBeams (g, cur, shared,  next.getCX() - cur.getCX(),size, deltax);
-				}
-				else {
-					if (next != null)
-						shared = getSharedWithNext(cur,next);
-					else shared = 0;
-					propres = cur.getBeamsNum() - shared;
-					drawLongBeams (g, cur, shared,  next.getCX() - cur.getCX(),size, deltax);
-					if (next.getBeamsNum() <= prev.getBeamsNum() && ! ((SimpleDrawable) prev).lastOfChildren())
-						drawCourtBeams (g, cur, propres, size, shared);
-					else drawCourtBeams (g, cur, propres, size, shared);
-				}
-			}
+				((GroupDrawable) item).groupDrawStems(g, up_p, deltax, ybarpos);
 		}
 	}
 
-    public void drawBeam (I_Render g, double x, double y, double w, double h) {
-    	FX.omFillRect(g, x, y, w, h);
-    }
-    
-    public void drawCourtBeams (I_Render g, I_FigureDrawable cur, int n, int size, int shared) {
-    	double ygroup;
-    	double xpos;
-    	if (up_p) {
-    		ygroup = y() + (n * interBeamSpace);
-    		xpos = cur.getCX() + cur.getHeadSize();
-    	}
-    	else {
-    		ygroup = y() - h() - (n * interBeamSpace);
-    		xpos = cur.getCX();
-    	}
-    	for (int i = 0; i < n; i++) {
-    	if (up_p) {
-    		drawBeam(g, xpos, ygroup+(i*interBeamSpace), size*1/4, size*1/8);
-    	}
-    	else {
-    		drawBeam(g, xpos, ygroup-(i*interBeamSpace), size*1/4, size*1/8);
-    	}
-    	}
-    }
-    
-    public void drawLongBeams (I_Render g, I_FigureDrawable cur, int n, double sizex, int size, double deltax ) {
-    	double ygroup;
-    	double xpos;
-    	if (up_p) {
-    		ygroup = y() + (n * interBeamSpace);
-    		xpos = cur.getCX() + cur.getHeadSize() +deltax;
-    	}
-    	else {
-    		ygroup = y() - h() - (n * interBeamSpace);
-    		xpos = cur.getCX() +deltax;
-    	}
-    	for (int i = 0; i < n; i++) {
-    	if (up_p) {
-    		drawBeam(g, xpos, ygroup+(i*interBeamSpace), sizex, size*1/8);
-    	}
-    	else {
-    		drawBeam(g, xpos, ygroup-(i*interBeamSpace), sizex, size*1/8);
-    	}
-    }
-   }
-                        
-    /*                     
-                         
-                         
-               (defun drawNlong-beams (self n dir x sizex y rect zoom size)
-   (let* ((ygroup (+ y (if (string-equal dir "up") (second rect) (fourth rect) )))
-          (xpos (if (string-equal dir "up")
-                  (round (+  x (/ size 3.5) (* zoom (x self))))
-                  (round (+  x  (* zoom (x self))))))
-          (spacesize (inter-beam-space size)))
-     (loop for i from 0 to (- n 1) do
-           (if  (string-equal dir "up")
-             (draw-beam    xpos (+ ygroup (* spacesize i))
-                           sizex (round size 8) (selected self))
-             (draw-beam  xpos (- ygroup (* spacesize i))
-                         sizex (round size 8) (selected self))))))
-*/
-               
-	public int getSharedWithNext (I_FigureDrawable prev, I_FigureDrawable cur) {
-			if (((SimpleDrawable) prev).lastOfChildren() || ((SimpleDrawable) cur).firstOfChildren()) 
-				return Math.min(1,Math.min(prev.getBeamsNum(),  cur.getBeamsNum()));
-			else
-				return Math.min(prev.getBeamsNum(), cur.getBeamsNum());
-	}
 
-	public void drawNumDen() {
-	
-	}
-			
-	public List<I_Drawable> getAtomes (){
-		List<I_Drawable> rep = new ArrayList<I_Drawable> ();
-		for (I_Drawable obj : getInside()) 
-			if (obj instanceof RChordDrawable || obj instanceof RestDrawable) 
-				rep.add(obj);
-			else if (obj instanceof GroupDrawable)  
+	public List<I_FigureDrawable> getAtomes (){
+		List<I_FigureDrawable> rep = new ArrayList<I_FigureDrawable> ();
+		for (I_Drawable obj : getInside())
+			if (obj instanceof RChordDrawable || obj instanceof RestDrawable)
+				rep.add((I_FigureDrawable) obj);
+			else if (obj instanceof GroupDrawable)
 				rep.addAll(((GroupDrawable) obj).getAtomes());
 		return rep;
-	}
-	
-	///////////Spacing
-	@Override
-	public double computeCX(SpacedPacket pack, int size) {
-		return 0;
 	}
 }
 
 //////////////////////////////////////////////////////////////////////
-		
+
 }

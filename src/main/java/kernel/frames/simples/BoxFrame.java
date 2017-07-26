@@ -17,9 +17,9 @@ import kernel.interfaces.I_Box;
 import kernel.interfaces.I_SimpleFrame;
 import kernel.metaobjects.ClassBox;
 import gui.FX;
-import gui.FXPane;
+import gui.PaneFX;
 
-public class BoxFrame extends FXPane implements I_SimpleFrame{
+public class BoxFrame extends PaneFX implements I_SimpleFrame{
 	boolean inputs = false;
 	boolean outputs = true;
 	boolean shoxname = false;
@@ -51,7 +51,7 @@ public class BoxFrame extends FXPane implements I_SimpleFrame{
 	}
 			
 	public void omStartDragDrop (double x, double y) {
-		Dragboard db = delegate.startDragAndDrop(TransferMode.MOVE);
+		Dragboard db = startDragAndDrop(TransferMode.MOVE);
 		db.setDragView(dragImage (), 0,0);
 		ClipboardContent content = new ClipboardContent();
 		content.putString("SHEET_KEY");
@@ -67,9 +67,9 @@ public class BoxFrame extends FXPane implements I_SimpleFrame{
 	        shadow.setColor(Color.FORESTGREEN);
 	        final Glow glow = new Glow();
 	        glow.setInput(shadow);
-	        omGetDelegate().setEffect(glow);
+	        setEffect(glow);
 		} else {
-			omGetDelegate().setEffect(null);
+			setEffect(null);
 		}	
 	}
 	

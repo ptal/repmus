@@ -16,14 +16,14 @@ public class MusicalControl extends ControlPane {
 	
 	public MusicalControl () {
 		super ();
-		omGetDelegate().setStyle("-fx-border-color: red;");
+		setStyle("-fx-border-color: red;");
 	}
 	
 	public void init () {
 		MusicalPanel panel = getPanel();
 		String [] slotList = panel.getSlotList();
 		omSetBackground (new Color (0.85, 0.85, 0.85, 1.0));
-		omGetDelegate().setEffect(new DropShadow());
+		setEffect(new DropShadow());
 		
 		int y1 = 2;
 		int y2 = 24;

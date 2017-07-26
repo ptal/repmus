@@ -3,6 +3,7 @@ package projects.music.editors;
 import java.util.ArrayList;
 import java.util.List;
 
+import kernel.tools.ST;
 import projects.music.editors.drawables.I_Drawable;
 import projects.music.editors.drawables.SimpleDrawable;
 
@@ -12,30 +13,45 @@ public class SpacedPacket {
 	public long time = 0;
 	public double start = 0; // start pixel
 	public double space = 0; // w en pixel
+	//public double cx = 0; // absolut en pixel
 	public double noTimeDeltaLeft = 0;
 	public double noTimeDeltaRight = 0;
+
+	public double deltal = 0;
+	public double deltar = 0;
+	public boolean strie_p = false;
 		
-	public SpacedPacket (I_Drawable obj, long at, double pos) {
+	public SpacedPacket (I_Drawable obj, long at, double pos, boolean strie) {
 		objectlist.add(obj);
 		time = at;
 		start = pos;
+		strie_p = strie;
 	}
 	
-	public SpacedPacket (I_Drawable obj, long at) {
+	public SpacedPacket (I_Drawable obj, long at, boolean strie) {
 		objectlist.add(obj);
 		time = at;
+		strie_p = strie;
 	}
 
 	public void spacePacket(int size) {
-		double maxCX = this.start;
+		for (I_Drawable item : objectlist) 
+			 item.computeCX(this, size);
 		for (I_Drawable item : objectlist) {
-			maxCX = Math.max (maxCX, item.computeCX(this, size)); // moveCX et calcule le rectangle del packet
-			// il faudra faire item.setCX(packed.space);
+			item.setCX(start+noTimeDeltaLeft+deltal);
 		}
-		//for (I_Drawable item : objectlist) {
-		//	item.translateCX(maxCX, this);
-		//}
-		// a la fin je dois changer la valeur de packet space
+		space = space + noTimeDeltaLeft + deltal + deltar + noTimeDeltaRight;
+	}
+	
+	public void updatePacket(double ntdl, double ntdr, double item_dl, double item_dr) {
+		noTimeDeltaLeft = Math.max (noTimeDeltaLeft, ntdl);
+		noTimeDeltaRight = Math.max (noTimeDeltaRight, ntdr);
+		deltal = Math.max (deltal, item_dl);
+		deltar = Math.max (deltar, item_dr);
+	}
+	
+	public double getCX ( ){
+		return start+noTimeDeltaLeft+deltal;
 	}
 	
 	public String toString ( ){
@@ -44,24 +60,4 @@ public class SpacedPacket {
 	
 }
 
-/*
-clefSpace
-measureSpace
-signatureSpace
-alterationSpace
-headsSpace
-graceSpace
-*/
-
-/*
- breakLine
- breakPage
- changeClef
- changeSystem
- */
-
-/*
- newMultiSystem
- finMultiSystem
- */
 

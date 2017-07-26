@@ -1,7 +1,7 @@
 package kernel.frames.simples;
 
-import gui.FXPane;
 import gui.I_SimpleView;
+import gui.PaneFX;
 import gui.mouvables.DragLine;
 import resources.Loader;
 import javafx.beans.binding.DoubleBinding;
@@ -17,7 +17,7 @@ import kernel.metaobjects.Patch;
 import kernel.metaobjects.Patch.PatchPanel;
 
 
-public class OutputBoxFrame extends FXPane {
+public class OutputBoxFrame extends PaneFX {
 	
 	public ImageView imageview;
 	String name;
@@ -29,7 +29,7 @@ public class OutputBoxFrame extends FXPane {
 		imageview = new ImageView();	
 		Image image = Loader.getIconFromDic("185");
 		imageview.setImage(image);
-		((Pane) omGetDelegate()).getChildren().add(imageview);
+		getChildren().add(imageview);
 	}
 	
 	public boolean draggable (){
@@ -47,8 +47,8 @@ public class OutputBoxFrame extends FXPane {
 			removeMouvable();
 			PatchPanel patchpanel = getPatchPanel();
 			Patch patch = ((Patch) patchpanel.getEditor().getObject());
-			Point2D point = this.omGetDelegate().localToScene(new Point2D(x,y)); 
-			point = getPatchPanel().omGetDelegate().sceneToLocal(point);
+			Point2D point = this.localToScene(new Point2D(x,y)); 
+			point = getPatchPanel().sceneToLocal(point);
 			I_SimpleView target = getPatchPanel().getPaneWithPoint(point.getX(), point.getY());
 			if (target instanceof InputBoxFrame) {
 				BoxFrame boxframe = ((BoxFrame) omViewContainer());
@@ -70,8 +70,8 @@ public class OutputBoxFrame extends FXPane {
 	}
 	
 	public void connectionBind (DoubleProperty x, DoubleProperty y) {
-		DoubleProperty x1 = omViewContainer().omGetDelegate().layoutXProperty();
-		DoubleProperty y1 = omViewContainer().omGetDelegate().layoutYProperty();
+		DoubleProperty x1 = ((Pane) omViewContainer()).layoutXProperty();
+		DoubleProperty y1 = ((Pane) omViewContainer()).layoutYProperty();
 		DoubleBinding dbx = new DoubleBinding() {
 		  {
                 super.bind(x, x1);

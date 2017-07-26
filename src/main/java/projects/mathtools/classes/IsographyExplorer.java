@@ -6,16 +6,24 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-
 import javafx.geometry.Point2D;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import gui.CanvasFX;
 import gui.FX;
 import gui.FX.AnchorRect;
-import gui.FXCanvas;
 import gui.renders.GCRender;
 import gui.renders.I_Render;
+import projects.music.classes.abstracts.extras.I_Extra;
 import projects.music.classes.music.Chord;
+import projects.music.classes.music.ChordSeq;
+import projects.music.classes.music.ChordSeq.ChordSeqDrawable;
+import projects.music.editors.MusicalParams;
+import projects.music.editors.StaffSystem;
+import projects.music.editors.StaffSystem.MultipleStaff;
+import projects.music.editors.drawables.ExtraDrawable;
+import projects.music.editors.drawables.I_Drawable;
+import projects.music.editors.drawables.I_ExtraDrawable;
 import kernel.I_OMObject;
 import kernel.annotations.Ombuilder;
 import kernel.annotations.Omclass;
@@ -26,8 +34,7 @@ import kernel.tools.ST;
 
 
 @Omclass(icon = "421", editorClass = "projects.mathtools.classes.IsographyExplorer$IsoExpEditor")
-public class IsographyExplorer  implements I_OMObject, Serializable {
-
+public class IsographyExplorer  implements I_OMObject, I_Extra, Serializable {
 	List<List<Integer>> chordList;
 	List<List<List<Integer>>> permutList = new ArrayList<List<List<Integer>>>();
 	List<Double> posList = new ArrayList<Double>();
@@ -38,16 +45,26 @@ public class IsographyExplorer  implements I_OMObject, Serializable {
 	List<List<LocalIsographyCol>> localList  =new ArrayList<List<LocalIsographyCol>>();
 	double size = 24;
 
-	public IsographyExplorer (List<Chord> thechordList) {
+	public IsographyExplorer (ChordSeq chseq) {
 		//length doit etre + rand que 2
-		List<List<Integer>> chords = new ArrayList<List<Integer>>();
-		for (Chord chord :thechordList)
-			chords.add(chord.getLMidic());
-		chordList= MT.mc2Z12(chords);
+		List<List<Integer>> chords = chseq.lmidic;
+		chordList= MT.lmc2Z12(chords);
 		initSlots ();
 	}
 
-	@Ombuilder(definputs="Chord ((6000 6400 6700), (80), (0), (1000), (1)) ; Chord ((6000 6400 6900), (80), (0), (1000), (1))")
+	@Ombuilder(definputs="((0 4 7) (0 4 9) (0 5 9) (2 5 9) (2 5 10) (2 7 10) (3 7 10) (3 7 0) (3 8 0) (5 8 0) )")
+	public IsographyExplorer (List<List<Integer>> chords) {
+		chordList = new ArrayList<List<Integer>>();
+		for (List<Integer> item : chords) {
+			List<Integer> itemc = new ArrayList<Integer>();
+			for (Integer elem : item)
+				itemc.add(elem);
+			chordList.add(itemc);
+		}
+		initSlots ();
+	}
+	
+	
 	public IsographyExplorer (Chord chord1, Chord chord2) {
 		this(MT.mc2Z12(chord1.getLMidic()), MT.mc2Z12(chord2.getLMidic()));
 	}
@@ -75,7 +92,7 @@ public class IsographyExplorer  implements I_OMObject, Serializable {
 		chords.add(input2);
 		chordList= chords;
 		initSlots ();
-	}
+	} 
 
 	public void initSlots () {
 			int length = chordList.size();
@@ -259,13 +276,13 @@ protected static class  Transition {
 		   else return "I" + value[1];
 	}
 
-	public void Draw (I_Render g, double x, double y) {
+	public void Draw (I_Render g, double x, double y, double size ) {
 		if (value[0] == 1)
 			   FX.omDrawString(g, x, y, "T");
 		   else FX.omDrawString(g, x, y, "I");
-		FX.omSetFont(g, new Font("Courier",14));
-		FX.omDrawString(g, x + 10, y + 4, value[1]+"");
-		FX.omSetFont(g, new Font("Courier",18));
+		FX.omSetFont(g, new Font("Courier", size*2/4));
+		FX.omDrawString(g, x + size/1.9, y + 4, value[1]+"");
+		FX.omSetFont(g, new Font("Courier", size*3/4));
 	}
 }
 
@@ -307,13 +324,11 @@ protected static class CompleteIsography {
 	}
 
 	public void drawLine (I_Render g,double x0, double y,double x1, double size ) {
-		System.out.println("Drawing iso " + x0 + " " + x1);
 		FX.omDrawArrow(g, x0, y, x1, y,8);
 		FX.omDrawString(g, x0, y - size/2, "v(x)= x - 8"+ (char) 363);
 	}
 
 	public void drawCurve (I_Render g,double x0, double y,double x1, double size ) {
-		System.out.println("Drawing iso " + x0 + " " + x1);
 		FX.omDrawArrow(g, x0, y, x1, y,8);
 		FX.omDrawString(g, x0, y - size/2, "v(x)= x - 8"+ (char) 363);
 	}
@@ -409,10 +424,10 @@ public static CompleteIsography lookForCompInCol(List<CompleteIsographyCol> list
 		if (col.per_source == source && col.per_target == target) {
 			rep = col.iso;
 			break;
-	}
+		}
 	}
 	return rep;
-	}
+}
 
 public static List<Isography> lookForLocalInCol(List<LocalIsographyCol> list, int persource, int funcsource,
 		int pertarget, int functarget){
@@ -437,8 +452,8 @@ public  void DrawContentsInRect (I_Render g, double left, double right, double t
 		List<Integer> chordi = permutList.get(i).get(curPerList.get(i));
 		List<Integer> chordj = permutList.get(j).get(curPerList.get(j));
 		double deltatriangle = posj - posi;
-		double x0 = posi;
-		double y0 = deltay;
+		double x0 = posi + left;
+		double y0 = top+deltay;
 		double x1 = x0 + deltatriangle;
 		double y1 = y0;
 		double x2 = x0+ deltatriangle; //on va les definir si necessaire
@@ -451,18 +466,13 @@ public  void DrawContentsInRect (I_Render g, double left, double right, double t
 		drawTriangle(g,x1,y1, chordj,func2,j);
 		List<CompleteIsographyCol> isoCompleteCol = completeList.get(i);
 		CompleteIsography compIso = lookForCompInCol(isoCompleteCol, curPerList.get(i),curPerList.get(j));
-		System.out.println("chordi " + chordi + "chordj " + chordj + "funci " + func1 +"funcj " + func2 );
-		System.out.println("complete " + compIso);
 		compIso = null; //provisoir a effacer
 		if (compIso != null)
 			compIso.drawLine (g, x0+ size*5.2, y0 + size*4, x0 + size*5.2 + deltatriangle*0.55, size );
 		else {
 			List<LocalIsographyCol> isolocalCol = localList.get(i);
 			List<Isography> localIsos = lookForLocalInCol(isolocalCol, curPerList.get(i),curPerList.get(j),curFunList.get(i),curFunList.get(j));
-
-			System.out.println("local " + localIsos);
 		}
-
 	}
 }
 
@@ -472,7 +482,7 @@ public  void drawTriangle (I_Render g, double x0, double y0, List<Integer> chord
 	double y = y0 + size/2;
 	double x = x0 + size*2;
 	FX.omSetColorFill(g, Color.BLACK);
-	FX.omSetFont(g, new Font("Courier",18));
+	FX.omSetFont(g, new Font("Courier",size*3/4));
 	AnchorRect p1 = new AnchorRect (x,y, size,size,MT.num2name(chord.get(0)));
 	AnchorRect p2 = new AnchorRect (x+deltax, y+ysize/2, size, size, MT.num2name(chord.get(1)));
 	AnchorRect p3 = new AnchorRect (x,y+ysize, size, size, MT.num2name(chord.get(2)));
@@ -502,9 +512,9 @@ public  void drawTriangle (I_Render g, double x0, double y0, List<Integer> chord
 
 	FX.omSetColorFill(g, Color.FIREBRICK);
 
-	func.value.get(0).Draw(g,x+ deltax/1.5, y+ ysize/4);
-	func.value.get(1).Draw(g,x+ (deltax+size)/1.8, y+ (ysize*3)/4);
-	func.value.get(2).Draw(g,x- size, y + ysize/1.7);
+	func.value.get(0).Draw(g,x+ deltax/1.5, y+ ysize/4, size);
+	func.value.get(1).Draw(g,x+ (deltax+size)/1.8, y+ (ysize*3)/4, size);
+	func.value.get(2).Draw(g,x- size, y + ysize/1.7, size);
 
 }
 
@@ -549,8 +559,8 @@ public  void drawTriangle (I_Render g, double x0, double y0, List<Integer> chord
               (draw-rien-du-tout view (+ (* 6 size) x0) (+ (* 5 size) y0) size))))))
 */
 
-public  void drawPreview (I_Render g, FXCanvas canvas, double x, double x1, double y, double y1, I_EditorParams params) {
-	DrawContentsInRect (g, x,x1,y,y1, 0);
+public  void drawPreview (I_Render g, CanvasFX canvas, double x, double x1, double y, double y1, I_EditorParams params) {
+	DrawContentsInRect (g, x, x1, y, y1, 0);
 }
 
 
@@ -570,6 +580,14 @@ public static class IsoExpEditor extends EditorView {
 
 //////////////////////PANEL//////////////////////
 public static class IsoExpPanel extends PanelCanvas {
+
+	public IsoExpPanel(double w, double h) {
+		super(w, h);
+	}
+	
+	public IsoExpPanel() {
+		super(1000, 1000);
+	}
 
 	@Override
 	public void omUpdateView(boolean changedObject_p) {
@@ -599,6 +617,53 @@ public static class IsoExpPanel extends PanelCanvas {
 		IsographyExplorer obj = (IsographyExplorer) getEditor().getObject();
 		obj.DrawContentsInRect(g, 0.0, w(), 0.0, h(), 0);
 	}
+}
+
+///////////////////////////////////EXTRAS///////////////////////////////////
+///////////////////////////////////////////////////////////////////////
+@Override
+public I_ExtraDrawable makeDrawable(I_Extra ref, I_Drawable drawable) {
+	return  new ExtraIsographyDrawable (ref, drawable);
+}
+
+@Override
+public int dx() {
+	// TODO Auto-generated method stub
+	return 0;
+}
+
+@Override
+public int dy() {
+	// TODO Auto-generated method stub
+	return 0;
+}
+
+public static class ExtraIsographyDrawable extends ExtraDrawable {
+
+	public ExtraIsographyDrawable(I_Extra ref, I_Drawable drawable) {
+		super(ref, drawable);
+	}
+	
+	@Override
+	public void drawExtra(I_Render g, double deltax) {
+		ChordSeqDrawable chordS = (ChordSeqDrawable) drawable;
+		IsographyExplorer theextra = ((IsographyExplorer) extra);
+		theextra.posList.clear();
+		MusicalParams params = chordS.params;
+		StaffSystem staffSystem = params.getStaff();
+    	MultipleStaff staff = staffSystem.getStaffs().get(chordS.staffnum);
+		int size = params.fontsize.get();
+		double zoom = params.zoom.get()/100.0;
+		theextra.size = size/2;
+		for (I_Drawable chord : chordS.getInside()) {
+			theextra.posList.add(chord.getCX() * zoom);
+		}
+    	int dent = size/4;
+    	double posx =  deltax + extra.dx()*dent;
+    	double posy = staff.getBottomPixel(size) + extra.dy() *dent + size;
+		((IsographyExplorer) extra). DrawContentsInRect(g, posx, posx + 2*size, posy, posy + 2*size, 0);
+	}
+	
 }
 
 ///////////////////////////////////////////////////////////////////////

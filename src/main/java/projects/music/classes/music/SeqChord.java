@@ -105,8 +105,8 @@ import resources.json.JsonRead;
 			}
 		}
 
-		public I_Drawable makeDrawable (MusicalParams params) {
-			return new SeqChordDrawable (this, params, 0, true);
+		public I_Drawable makeDrawable (MusicalParams params, boolean root) {
+			return new SeqChordDrawable (this, params, 0, root);
 		}
 
 	//////////////////////////////////////////////////

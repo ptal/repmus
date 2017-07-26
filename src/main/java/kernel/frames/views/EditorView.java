@@ -6,12 +6,12 @@ import java.util.List;
 import javafx.geometry.Point2D;
 import javafx.scene.Node;
 import javafx.scene.input.KeyEvent;
-import gui.FXPane;
+import gui.PaneFX;
 import gui.dialogitems.OmMenu;
 import kernel.I_OMObject;
 import kernel.metaobjects.MetaObject;
 
-public class EditorView extends FXPane {
+public class EditorView extends PaneFX {
 
 	I_Panel panel=null;
 	List<EditorView> attachedEditors = null;
@@ -24,8 +24,8 @@ public class EditorView extends FXPane {
 	
 	public EditorView () {
 		super();
-		delegate.widthProperty().addListener(evt -> updateSubviews());
-		delegate.heightProperty().addListener(evt -> updateSubviews());
+		widthProperty().addListener(evt -> updateSubviews());
+		heightProperty().addListener(evt -> updateSubviews());
 	}
 	
 	//////////////////////////////////////////////////////////////
@@ -121,8 +121,8 @@ public class EditorView extends FXPane {
 	public void updateSubviews () {
 		double deltatitle = 30;
 		double deltacontrol = 50;
-		double w = delegate.getWidth();
-		double h = delegate.getHeight();
+		double w = w();
+		double h = h();
 		double deltah = 0;
 		panel.omSetViewPosition (0,0);
 		if (titlebar != null) {
@@ -136,7 +136,7 @@ public class EditorView extends FXPane {
 			controls.omSetViewPosition (0,h-deltacontrol);
 			controls.omSetViewSize (w,deltacontrol);
 		}
-		panel.omSetViewSize (w,h-deltah);
+		panel.omSetViewSize (w-15,h-deltah-15);
 		panel.omUpdateView(false);
 	}
 	

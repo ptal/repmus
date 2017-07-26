@@ -1,7 +1,7 @@
 package projects.music.classes.music;
 
 
-import gui.FXCanvas;
+import gui.FX;
 import gui.renders.I_Render;
 
 import java.util.ArrayList;
@@ -15,7 +15,7 @@ import kernel.frames.views.I_EditorParams;
 import com.sun.javafx.geom.Rectangle;
 
 import projects.music.classes.abstracts.MusicalObject;
-import projects.music.classes.abstracts.Sequence_S_MO;
+import projects.music.classes.abstracts.Sequence_L_MO;
 import projects.music.editors.MusicalControl;
 import projects.music.editors.MusicalEditor;
 import projects.music.editors.MusicalPanel;
@@ -30,7 +30,7 @@ import projects.music.editors.drawables.StaffBound;
 
 
 @Omclass(icon = "224", editorClass = "projects.music.classes.music.Sequence$SequenceEditor")
-public class Sequence extends Sequence_S_MO {
+public class Sequence extends Sequence_L_MO {
 	
 	@Ombuilder(definputs=" ( Voice ( ( (4/4 ( 1 1 1 1)) ) , ( RChord ((6000), (80), (0), 1/8, (1)) ) , 60) "
 			+ "Silence ( 3000 ) "
@@ -47,11 +47,21 @@ public class Sequence extends Sequence_S_MO {
 	
 	public Sequence () {
 		List<MusicalObject> elems = new ArrayList<MusicalObject> ();
-		elems.add(new Note());
+		elems.add(new RNote());
+		
+		// elems.add(new Note());
 		elems.add(new Chord());
-		elems.add(new ChordSeq());
+		elems.add(new MidiFile());
+		elems.add(new RChord());
+		//elems.add(new ChordSeq());
+		//elems.add(new MultiSeq());
+		//elems.add(new Voice());
+		//elems.add(new Poly());
+		/*elems.add(new RSeqChord());
 		elems.add(new SeqChord());
+		elems.add(new Parallel());
 		elems.add(new MultiSeq());
+		;*/
 		long onset = 0;
 		for (MusicalObject obj : elems)  {
 			addElement(obj);
@@ -67,7 +77,7 @@ public class Sequence extends Sequence_S_MO {
 		return params;
 	}
 	
-	public  void drawPreview (I_Render g, FXCanvas canvas, double x, double x1, double y, double y1, I_EditorParams edparams) {
+	public  void drawPreview (I_Render g, MusicalPanel canvas, double x, double x1, double y, double y1, I_EditorParams edparams) {
 		/*MusicalParams params = (MusicalParams) edparams;
 		int size = params.fontsize.get();
 		g.omSetFont(params.getFont("headSize"));
@@ -88,8 +98,8 @@ public class Sequence extends Sequence_S_MO {
 
 	
 //////////////////////////////////////////////////
-public I_Drawable makeDrawable (MusicalParams params) {
-return new SequenceDrawable (this, params, true);
+public I_Drawable makeDrawable (MusicalParams params, boolean root) {
+return new SequenceDrawable (this, params, root);
 }
 
 
@@ -169,9 +179,9 @@ public void initSequenceDrawable (Sequence theRef, MusicalParams theparams){
 		MusicalParams param = obj.getParams();
 		param.getStaff().setMarges(1, 4);
 		paramslist.add(param);
-		I_Drawable drawable = obj.makeDrawable(param);
+		I_Drawable drawable = obj.makeDrawable(param, false); 
 		inside.add(drawable);
-	//	drawable.setFather(this);
+		drawable.setFather(this);
 	}	
 	if (isRoot_p ()) {
 		makeSpaceObjectList();
@@ -190,32 +200,40 @@ public void drawLineSystemInRect (I_Render g, MusicalParams params, double x, do
 }
 
 @Override
-public void drawObject(I_Render g, FXCanvas panel, Rectangle rect,
+public void drawObject(I_Render g,  Rectangle rect,
 		List<I_Drawable> selection, double packStart, 
 		double deltax, double deltay) {
 	if (isRoot_p ()) {
-		for (SpacedPacket packed : timespacedlistS) {
+		for (SpacedPacket packed : timespacedlist) {
 			for (I_Drawable obj : packed.objectlist ){
-				obj.drawObject (g, panel, rect, selection, packed.start, deltax, deltay);
-			}
-		}
-		for (SpacedPacket packed : timespacedlistL) {
-			for (I_Drawable obj : packed.objectlist ){
-				obj.drawObject (g, panel, rect, selection, packed.start, deltax, deltay);
+				obj.drawObject (g, rect, selection, packed.start, deltax, deltay);
 			}
 		}
 	}
-	drawContainersObjects(g,  panel,  rect, selection, deltax);
+	drawContainersObjects(g,  rect, selection, deltax);
+	int size = params.fontsize.get();
+	Font thefont = params.getFont("normal2.3Size");
+	Font oldfont = FX.omGetFont(g);
+	FX.omSetFont(g, thefont);
+	for (int i = 0; i < 20000; i = i+ 1000) {
+		double x = deltax + time2pixel(i, size);
+		FX.omDrawLine(g, x, 0, x, 50);
+		FX.omDrawString(g, x, 50, Math.round(x - deltax)+"");
+		FX.omDrawString(g, x, 60, Math.round(interpole(i))+"");
+		FX.omDrawString(g, x, 70, i+"");
+	}
+	FX.omSetFont(g, oldfont);
 }
 
-public void collectTemporalObjectsS(List<SpacedPacket> timelist) {
+@Override
+public void collectTemporalObjects(List<SpacedPacket> timelist) {
 	int i = 0;
 	for (I_Drawable obj : getInside()) {
-		StaffBound ss = new StaffBound(paramslist.get(i), false);
-		StaffBound es  = new StaffBound(paramslist.get(i), true);
-		timelist.add(new SpacedPacket(ss, obj.getRef().getOnsetMS()));
-		timelist.add(new SpacedPacket(es, obj.getRef().getOnsetMS() + obj.getRef().getDuration()));
-		((SimpleDrawable) obj).collectTemporalObjectsS(timelist);
+		StaffBound ss = new StaffBound(paramslist.get(i), ((SimpleDrawable) obj).ref, false);
+		StaffBound es  = new StaffBound(paramslist.get(i), ((SimpleDrawable) obj).ref, true);
+		timelist.add(new SpacedPacket(ss, obj.getRef().getOnsetMS(), true));
+		timelist.add(new SpacedPacket(es, obj.getRef().getOnsetMS() + obj.getRef().getDuration(), true));
+		obj.collectTemporalObjects(timelist);
 		i++;
 	}
 	}

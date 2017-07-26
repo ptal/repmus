@@ -49,10 +49,8 @@ public class EditorMaker {
 				classCtr = Class.forName(theEditor.getControlsClass());
 			}
 			
-			if (theEditor.getTitleBarClass() != null) {
+			if (theEditor.getTitleBarClass() != null) 
 				classTi = Class.forName(theEditor.getTitleBarClass());
-			}
-			
 			try {
 				thePanel = (I_Panel) classe.newInstance();
 				if (classCtr != null){
@@ -62,7 +60,7 @@ public class EditorMaker {
 					theTitle = (TitlePane) classTi.newInstance();
 				}
 			} catch (InstantiationException | IllegalAccessException e) {
-				thePanel = new PanelCanvas ();
+				thePanel = new PanelCanvas (500,500);
 			}
 		} catch (ClassNotFoundException e) {
 			thePanel = new PanelView ();

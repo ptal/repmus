@@ -143,6 +143,8 @@ public class MusChars {
 	public static String head_triangle = Character.toString((char) 102);
 	public static String head_cercle = Character.toString((char) 104);
 
+	public static String head_x = Character.toString((char) 96);
+
 
 //=======================rests
 	public static String rest_4 = Character.toString((char) 93);

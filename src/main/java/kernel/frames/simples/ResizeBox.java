@@ -3,10 +3,10 @@ package kernel.frames.simples;
 import javafx.scene.Cursor;
 import javafx.scene.shape.Rectangle;
 import resources.Loader;
-import gui.FXPane;
+import gui.PaneFX;
 import gui.mouvables.DrawGrow;
 
-public class ResizeBox extends FXPane {
+public class ResizeBox extends PaneFX {
 	double minx;
 	double miny;
 	
